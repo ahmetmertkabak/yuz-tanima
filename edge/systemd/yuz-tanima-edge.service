@@ -1,0 +1,30 @@
+# systemd service for the edge node
+# Install to /etc/systemd/system/yuz-tanima-edge.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now yuz-tanima-edge
+[Unit]
+Description=Yüz Tanıma Edge Node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=yuztanima
+Group=yuztanima
+WorkingDirectory=/opt/yuz-tanima/edge
+EnvironmentFile=/etc/yuz-tanima/edge.env
+ExecStart=/opt/yuz-tanima/edge/.venv/bin/python -m app.main
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/yuz-tanima/edge /var/log/yuz-tanima
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

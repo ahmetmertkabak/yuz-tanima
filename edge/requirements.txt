@@ -1,0 +1,38 @@
+# ============================================================================
+# Pi Edge Node requirements
+# Tested with Python 3.11 on Raspberry Pi OS (64-bit, Bookworm).
+# ============================================================================
+
+# --- Core / networking ---
+requests==2.32.3
+urllib3==2.2.3
+python-dotenv==1.0.1
+pydantic==2.8.2
+pydantic-settings==2.4.0
+
+# --- Computer vision + face recognition (Phase 1: dlib/face_recognition) ---
+# NOTE: On Pi, prefer installing these via system packages:
+#   sudo apt install python3-opencv python3-dlib
+# The Python packages below are kept minimal so `pip install -r requirements.txt`
+# does not attempt to compile dlib from source on the Pi.
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+face-recognition==1.3.0
+face-recognition-models==0.3.0
+dlib==19.24.6
+Pillow==10.4.0
+
+# --- GPIO / hardware ---
+RPi.GPIO==0.7.1 ; platform_machine == "aarch64" or platform_machine == "armv7l"
+gpiozero==2.0.1 ; platform_machine == "aarch64" or platform_machine == "armv7l"
+RPLCD==1.3.1    ; platform_machine == "aarch64" or platform_machine == "armv7l"
+smbus2==0.4.3   ; platform_machine == "aarch64" or platform_machine == "armv7l"
+
+# --- Concurrency / scheduling ---
+APScheduler==3.10.4
+
+# --- Logging ---
+structlog==24.4.0
+
+# --- Dev / test (only installed in dev) ---
+pytest==8.3.2 ; extra == "dev"

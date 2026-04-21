@@ -1,0 +1,86 @@
+# ============================================================================
+# Local development stack for the yuz-tanima server.
+# NOT for production — production uses the VPS provisioning from docs/deployment.md.
+#
+# Usage:
+#   docker compose up -d                # start all services
+#   docker compose up -d postgres redis # only infra (run Flask locally)
+#   docker compose logs -f server
+# ============================================================================
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: yuz-tanima-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: yuz_tanima_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: yuz-tanima-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # MinIO — S3-compatible object storage for snapshots / face images (KVKK encryption at rest)
+  minio:
+    image: minio/minio:latest
+    container_name: yuz-tanima-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    volumes:
+      - miniodata:/data
+    restart: unless-stopped
+
+  # Flask server — optional; comment out if you prefer running it on the host
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: yuz-tanima-server
+    env_file:
+      - ./server/.env
+    environment:
+      FLASK_ENV: development
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/yuz_tanima_dev
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT_URL: http://minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./server:/app
+    command: python run.py
+    profiles: ["full"]   # enabled via:  docker compose --profile full up
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
