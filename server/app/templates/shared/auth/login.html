@@ -2,46 +2,65 @@
 {% from "shared/partials/form_field.html" import render_field %}
 
 {% block title %}Giriş{% endblock %}
-{% block body_class %}auth-body{% endblock %}
+{% block body_class %}d-flex flex-column bg-light{% endblock %}
 
 {% block layout %}
-<div class="auth-wrapper d-flex align-items-center min-vh-100">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm">
-          <div class="card-body p-4">
-            <div class="text-center mb-4">
-              <h1 class="h4 mb-0">{{ config.APP_NAME }}</h1>
-              <p class="text-muted small mb-0">Yönetim Paneli</p>
-            </div>
+<div class="page page-center">
+  <div class="container container-tight py-4">
+    <div class="text-center mb-4">
+      <a href="." class="navbar-brand navbar-brand-autodark">
+        <span class="d-inline-flex align-items-center justify-content-center rounded-3 me-2"
+              style="width: 36px; height: 36px; background: linear-gradient(135deg,#4dabf7,#206bc4); color:#fff;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+        </span>
+        {{ config.APP_NAME }}
+      </a>
+    </div>
 
-            {% include "shared/partials/flash.html" %}
+    <div class="card card-md">
+      <div class="card-body">
+        <h2 class="h2 text-center mb-4">Hesabınıza giriş yapın</h2>
 
-            <form method="post" novalidate>
-              {{ form.hidden_tag() }}
-              {{ render_field(form.username, placeholder="kullanıcı adınız") }}
-              {{ render_field(form.password, placeholder="••••••••") }}
-              <div class="mb-3">
-                <div class="form-check">
-                  {{ form.remember_me(class="form-check-input") }}
-                  {{ form.remember_me.label(class="form-check-label") }}
-                </div>
-              </div>
-              {{ form.submit(class="btn btn-primary w-100") }}
-            </form>
+        {% include "shared/partials/flash.html" %}
 
-            <div class="text-center mt-3 small">
-              <a href="{{ url_for('auth.password_reset_request') }}" class="text-muted">
-                Şifremi unuttum
-              </a>
-            </div>
+        <form method="post" autocomplete="off" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label">Kullanıcı Adı</label>
+            {{ form.username(class="form-control" ~ (" is-invalid" if form.username.errors), placeholder="kullanıcı adınız") }}
+            {% if form.username.errors %}<div class="invalid-feedback">{{ form.username.errors[0] }}</div>{% endif %}
           </div>
-        </div>
-        <p class="text-center text-muted small mt-3 mb-0">
-          v{{ config.APP_VERSION }}
-        </p>
+
+          <div class="mb-2">
+            <label class="form-label">
+              Şifre
+              <span class="form-label-description">
+                <a href="{{ url_for('auth.password_reset_request') }}">Şifremi unuttum</a>
+              </span>
+            </label>
+            <div class="input-group input-group-flat">
+              {{ form.password(class="form-control" ~ (" is-invalid" if form.password.errors), placeholder="şifreniz") }}
+            </div>
+            {% if form.password.errors %}<div class="invalid-feedback d-block">{{ form.password.errors[0] }}</div>{% endif %}
+          </div>
+
+          <div class="mb-2">
+            <label class="form-check">
+              {{ form.remember_me(class="form-check-input") }}
+              <span class="form-check-label">Beni hatırla</span>
+            </label>
+          </div>
+
+          <div class="form-footer">
+            <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+          </div>
+        </form>
       </div>
+    </div>
+
+    <div class="text-center text-muted mt-3 small">
+      v{{ config.APP_VERSION }} · <span class="text-success">●</span> {{ config.APP_NAME }}
     </div>
   </div>
 </div>

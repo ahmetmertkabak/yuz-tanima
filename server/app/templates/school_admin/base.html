@@ -1,87 +1,129 @@
 {% extends "shared/base.html" %}
 
-{% block extra_head %}
-  <link href="{{ url_for('static', filename='css/school.css') }}" rel="stylesheet">
-{% endblock %}
-
 {% set school = g.get('tenant_context').school if g.get('tenant_context') else None %}
+{% set ep = request.endpoint or '' %}
 
 {% block layout %}
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom school-topbar sticky-top">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-semibold" href="{{ url_for('school_admin.dashboard') }}">
-      <i class="bi bi-buildings text-primary"></i>
-      {{ school.name if school else config.APP_NAME }}
-    </a>
+<div class="page">
+  <!-- Top header -->
+  <header class="navbar navbar-expand-md d-print-none">
+    <div class="container-xl">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#school-nav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+      <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+        <a href="{{ url_for('school_admin.dashboard') }}" class="d-flex align-items-center text-reset">
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 me-2"
+                style="width: 32px; height: 32px; background: linear-gradient(135deg,#4dabf7,#206bc4); color:#fff;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+          </span>
+          <div class="school-brand">
+            {{ school.name if school else config.APP_NAME }}
+            {% if school %}<div class="school-subdomain">{{ school.subdomain }}.{{ config.BASE_DOMAIN }}</div>{% endif %}
+          </div>
+        </a>
+      </div>
 
-    <div class="collapse navbar-collapse" id="school-nav">
-      <ul class="navbar-nav ms-3 me-auto">
-        <li class="nav-item">
-          <a class="nav-link {% if request.endpoint == 'school_admin.dashboard' %}active fw-semibold{% endif %}"
-             href="{{ url_for('school_admin.dashboard') }}">
-            <i class="bi bi-speedometer2"></i> Dashboard
+      <div class="navbar-nav flex-row order-md-last">
+        <div class="nav-item dropdown">
+          <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown">
+            <span class="avatar avatar-sm avatar-initials rounded-circle">
+              {{ (current_user.full_name or current_user.username)[0]|upper }}
+            </span>
+            <div class="d-none d-xl-block ps-2">
+              <div>{{ current_user.full_name or current_user.username }}</div>
+              <div class="mt-1 small text-secondary">
+                {% if current_user.role == 'school_admin' %}Okul Yöneticisi
+                {% elif current_user.role == 'school_staff' %}Personel
+                {% elif current_user.role == 'viewer' %}Görüntüleyici
+                {% else %}{{ current_user.role }}{% endif %}
+              </div>
+            </div>
           </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if request.endpoint and request.endpoint.startswith('school_admin.persons') or request.endpoint == 'school_admin.person_detail' or request.endpoint == 'school_admin.person_edit' or request.endpoint == 'school_admin.person_enroll_face' or request.endpoint == 'school_admin.person_delete_face' %}active fw-semibold{% endif %}"
-             href="{{ url_for('school_admin.persons_list') }}">
-            <i class="bi bi-people"></i> Kişiler
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if request.endpoint and 'access_logs' in request.endpoint %}active fw-semibold{% endif %}"
-             href="{{ url_for('school_admin.access_logs_list') }}">
-            <i class="bi bi-list-check"></i> Geçişler
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if request.endpoint and ('reports' in request.endpoint or 'report_' in request.endpoint) %}active fw-semibold{% endif %}"
-             href="{{ url_for('school_admin.reports_index') }}">
-            <i class="bi bi-graph-up"></i> Raporlar
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <div class="d-flex align-items-center gap-3 ms-auto">
-      <span class="small text-muted d-none d-md-inline">
-        {{ current_user.full_name or current_user.username }}
-        <span class="badge bg-secondary ms-1">{{ current_user.role }}</span>
-      </span>
-      <div class="dropdown">
-        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                data-bs-toggle="dropdown">
-          <i class="bi bi-person-circle"></i>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
-            <i class="bi bi-key"></i> Şifre Değiştir
-          </a></li>
-          <li><a class="dropdown-item" href="{{ url_for('auth.setup_two_factor') }}">
-            <i class="bi bi-shield-lock"></i> 2FA Ayarları
-          </a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li>
+          <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+            <a href="{{ url_for('auth.change_password') }}" class="dropdown-item">Şifre Değiştir</a>
+            <a href="{{ url_for('auth.setup_two_factor') }}" class="dropdown-item">2FA Ayarları</a>
+            <div class="dropdown-divider"></div>
             <form method="post" action="{{ url_for('auth.logout') }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="dropdown-item text-danger">
-                <i class="bi bi-box-arrow-right"></i> Çıkış
-              </button>
+              <button type="submit" class="dropdown-item text-danger">Çıkış</button>
             </form>
-          </li>
-        </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Horizontal nav -->
+  <header class="navbar-expand-md">
+    <div class="collapse navbar-collapse" id="navbar-menu">
+      <div class="navbar navbar-light">
+        <div class="container-xl">
+          <ul class="navbar-nav">
+            <li class="nav-item {% if ep == 'school_admin.dashboard' %}active{% endif %}">
+              <a class="nav-link" href="{{ url_for('school_admin.dashboard') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+                </span>
+                <span class="nav-link-title">Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item {% if 'person' in ep %}active{% endif %}">
+              <a class="nav-link" href="{{ url_for('school_admin.persons_list') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/></svg>
+                </span>
+                <span class="nav-link-title">Kişiler</span>
+              </a>
+            </li>
+            <li class="nav-item {% if 'access_logs' in ep %}active{% endif %}">
+              <a class="nav-link" href="{{ url_for('school_admin.access_logs_list') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l11 0"/><path d="M9 12l11 0"/><path d="M9 18l11 0"/><path d="M5 6l0 .01"/><path d="M5 12l0 .01"/><path d="M5 18l0 .01"/></svg>
+                </span>
+                <span class="nav-link-title">Geçişler</span>
+              </a>
+            </li>
+            <li class="nav-item {% if 'report' in ep %}active{% endif %}">
+              <a class="nav-link" href="{{ url_for('school_admin.reports_index') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12l3 0l3 -8l4 16l3 -8l2 4l3 0"/></svg>
+                </span>
+                <span class="nav-link-title">Raporlar</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-wrapper">
+    {% block page_header %}
+      {% if self.page_title() %}
+      <div class="page-header d-print-none">
+        <div class="container-xl">
+          <div class="row g-2 align-items-center">
+            <div class="col">
+              {% if self.page_pretitle() %}<div class="page-pretitle">{% block page_pretitle %}{% endblock %}</div>{% endif %}
+              <h2 class="page-title">{% block page_title %}{% endblock %}</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+              <div class="btn-list">{% block header_actions %}{% endblock %}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    {% endblock %}
+
+    <div class="page-body">
+      <div class="container-xl">
+        {% include "shared/partials/flash.html" %}
+        {% block content %}{% endblock %}
       </div>
     </div>
   </div>
-</nav>
-
-<div class="container-fluid py-4 school-content">
-  {% include "shared/partials/flash.html" %}
-  {% block content %}{% endblock %}
 </div>
 {% endblock %}

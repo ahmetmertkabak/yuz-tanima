@@ -60,7 +60,11 @@ class AccessLog(db.Model):
 
     __tablename__ = "access_logs"
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(
+        db.BigInteger().with_variant(db.Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     school_id = db.Column(
         db.Integer,
         db.ForeignKey("schools.id", ondelete="CASCADE"),

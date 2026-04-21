@@ -1,139 +1,176 @@
 {% extends "school_admin/base.html" %}
 
 {% block title %}Kişiler{% endblock %}
+{% block page_pretitle %}Yönetim{% endblock %}
+{% block page_title %}Kişiler <span class="text-secondary fs-5 fw-normal ms-2">({{ total }})</span>{% endblock %}
+
+{% block header_actions %}
+  <a href="{{ url_for('school_admin.persons_import') }}" class="btn btn-outline-secondary">
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><polyline points="7 9 12 4 17 9"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+    Excel İçe Aktar
+  </a>
+  <a href="{{ url_for('school_admin.persons_export', **request.args) }}" class="btn btn-outline-secondary">
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><polyline points="7 11 12 16 17 11"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+    Excel İndir
+  </a>
+  <a href="{{ url_for('school_admin.persons_new') }}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Yeni Kişi
+  </a>
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h4 mb-0">Kişiler <span class="text-muted fs-6">({{ total }})</span></h1>
-  <div class="d-flex gap-2">
-    <a href="{{ url_for('school_admin.persons_import') }}" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-upload"></i> Excel İçe Aktar
-    </a>
-    <a href="{{ url_for('school_admin.persons_export', **request.args) }}" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-download"></i> Excel İndir
-    </a>
-    <a href="{{ url_for('school_admin.persons_new') }}" class="btn btn-primary btn-sm">
-      <i class="bi bi-plus-lg"></i> Yeni Kişi
-    </a>
+<div class="card">
+  <!-- Filters -->
+  <div class="card-body border-bottom py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small text-secondary">Ara</label>
+        <div class="input-icon">
+          <span class="input-icon-addon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+          </span>
+          <input type="search" name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="İsim, no, email">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">Rol</label>
+        <select name="role" class="form-select">
+          <option value="">Tümü</option>
+          {% for r in roles %}<option value="{{ r }}" {% if request.args.get('role') == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">Sınıf</label>
+        <select name="class_name" class="form-select">
+          <option value="">Tümü</option>
+          {% for c in classes %}<option value="{{ c }}" {% if request.args.get('class_name') == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-secondary">Durum</label>
+        <select name="active" class="form-select">
+          <option value="">Hepsi</option>
+          <option value="1" {% if request.args.get('active') == '1' %}selected{% endif %}>Aktif</option>
+          <option value="0" {% if request.args.get('active') == '0' %}selected{% endif %}>Pasif</option>
+        </select>
+      </div>
+      <div class="col-md-2 text-end">
+        <button class="btn btn-primary w-100">Filtrele</button>
+      </div>
+    </form>
   </div>
-</div>
 
-<!-- Filters -->
-<form method="get" class="row g-2 mb-3">
-  <div class="col-md-4">
-    <input type="search" name="q" value="{{ request.args.get('q','') }}"
-           class="form-control form-control-sm" placeholder="İsim, no veya email ara...">
-  </div>
-  <div class="col-md-2">
-    <select name="role" class="form-select form-select-sm">
-      <option value="">Tüm roller</option>
-      {% for r in roles %}<option value="{{ r }}" {% if request.args.get('role') == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
-    </select>
-  </div>
-  <div class="col-md-2">
-    <select name="class_name" class="form-select form-select-sm">
-      <option value="">Tüm sınıflar</option>
-      {% for c in classes %}<option value="{{ c }}" {% if request.args.get('class_name') == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
-    </select>
-  </div>
-  <div class="col-md-2">
-    <select name="active" class="form-select form-select-sm">
-      <option value="">Aktif/Pasif</option>
-      <option value="1" {% if request.args.get('active') == '1' %}selected{% endif %}>Aktif</option>
-      <option value="0" {% if request.args.get('active') == '0' %}selected{% endif %}>Pasif</option>
-    </select>
-  </div>
-  <div class="col-md-2">
-    <button class="btn btn-outline-primary btn-sm w-100" type="submit">Filtrele</button>
-  </div>
-</form>
+  <!-- Bulk actions form -->
+  <form method="post" action="{{ url_for('school_admin.persons_bulk') }}" id="bulk-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="ids" id="bulk-ids">
+    <input type="hidden" name="action" id="bulk-action">
 
-<!-- Bulk actions form -->
-<form method="post" action="{{ url_for('school_admin.persons_bulk') }}" id="bulk-form">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="hidden" name="ids" id="bulk-ids">
-  <input type="hidden" name="action" id="bulk-action">
-
-  <div class="card">
-    <div class="card-body p-0">
-      <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light">
-          <tr>
-            <th style="width:30px"><input type="checkbox" id="check-all"></th>
-            <th>No</th>
-            <th>Ad Soyad</th>
-            <th>Rol</th>
-            <th>Sınıf</th>
-            <th>Yüz</th>
-            <th>Aktif</th>
-            <th>KVKK</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in persons %}
+    {% if persons %}
+      <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
+          <thead>
             <tr>
-              <td><input type="checkbox" class="row-check" value="{{ p.id }}"></td>
-              <td><code>{{ p.person_no }}</code></td>
-              <td>
-                <a href="{{ url_for('school_admin.person_detail', person_id=p.id) }}">{{ p.full_name }}</a>
-              </td>
-              <td><span class="badge bg-secondary">{{ p.role }}</span></td>
-              <td>{{ p.class_name or '—' }}</td>
-              <td>
-                {% if p.has_face %}
-                  <span class="badge bg-success">✓</span>
-                {% else %}
-                  <span class="badge bg-warning text-dark">—</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if p.is_active %}<span class="badge bg-success">Evet</span>{% else %}<span class="badge bg-dark">Hayır</span>{% endif %}
-              </td>
-              <td>
-                {% set consent_class = {'granted':'success','pending':'warning','revoked':'danger'}.get(p.consent_status,'secondary') %}
-                <span class="badge bg-{{ consent_class }}">{{ p.consent_status }}</span>
-              </td>
-              <td class="text-end">
-                <a class="btn btn-sm btn-outline-primary"
-                   href="{{ url_for('school_admin.person_detail', person_id=p.id) }}">Aç</a>
-              </td>
+              <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
+              <th>Kişi</th>
+              <th>No</th>
+              <th>Sınıf</th>
+              <th>Rol</th>
+              <th>Yüz</th>
+              <th>KVKK</th>
+              <th>Durum</th>
+              <th class="w-1"></th>
             </tr>
-          {% else %}
-            <tr><td colspan="9" class="text-muted text-center p-4">Sonuç yok.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for p in persons %}
+              <tr>
+                <td><input type="checkbox" class="form-check-input row-check" value="{{ p.id }}"></td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <span class="avatar avatar-sm avatar-initials rounded-circle me-2">{{ p.full_name[0]|upper }}</span>
+                    <div>
+                      <a class="fw-semibold text-reset" href="{{ url_for('school_admin.person_detail', person_id=p.id) }}">{{ p.full_name }}</a>
+                      <div class="text-secondary small">{{ p.email or '—' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><code class="text-mono">{{ p.person_no }}</code></td>
+                <td class="text-secondary">{{ p.class_name or '—' }}</td>
+                <td><span class="badge bg-secondary-lt">{{ p.role }}</span></td>
+                <td>
+                  {% if p.has_face %}
+                    <span class="badge bg-success-lt">✓ Kayıtlı</span>
+                  {% else %}
+                    <span class="badge bg-yellow-lt">⚠ Eksik</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% set consent_class = {'granted':'success','pending':'warning','revoked':'danger'}.get(p.consent_status,'secondary') %}
+                  <span class="badge bg-{{ consent_class }}-lt text-capitalize">{{ p.consent_status }}</span>
+                </td>
+                <td>
+                  {% if p.is_active %}
+                    <span class="badge bg-success-lt">Aktif</span>
+                  {% else %}
+                    <span class="badge bg-dark-lt">Pasif</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-ghost-primary" href="{{ url_for('school_admin.person_detail', person_id=p.id) }}">Aç</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+        </div>
+        <p class="empty-title">Kişi bulunamadı</p>
+        <p class="empty-subtitle text-secondary">Filtreleri temizleyin veya ilk kişiyi ekleyin.</p>
+        <div class="empty-action">
+          <a href="{{ url_for('school_admin.persons_new') }}" class="btn btn-primary">Yeni Kişi</a>
+          <a href="{{ url_for('school_admin.persons_import') }}" class="btn btn-outline-secondary ms-2">Excel Yükle</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Bulk action bar -->
+    <div class="card-footer d-flex align-items-center" id="bulk-bar" style="display:none !important;">
+      <p class="m-0 text-secondary" id="bulk-count">0 seçili</p>
+      <div class="ms-auto btn-list">
+        <button type="button" class="btn btn-sm btn-outline-success" data-action="activate">Aktif Et</button>
+        <button type="button" class="btn btn-sm btn-outline-warning" data-action="deactivate">Pasif Et</button>
+        <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete">Sil</button>
+      </div>
     </div>
-  </div>
 
-  <div class="mt-2 d-flex gap-2" id="bulk-bar" style="display:none">
-    <span class="small text-muted" id="bulk-count">0 seçili</span>
-    <button type="button" class="btn btn-sm btn-outline-success" data-action="activate">Aktif Yap</button>
-    <button type="button" class="btn btn-sm btn-outline-warning" data-action="deactivate">Pasif Yap</button>
-    <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete">Sil</button>
-  </div>
-</form>
-
-<!-- Pagination -->
-{% if total > per_page %}
-  <nav class="mt-3">
-    <ul class="pagination pagination-sm justify-content-center">
-      {% set total_pages = (total / per_page) | round(0, 'ceil') | int %}
-      {% for p in range(1, total_pages + 1) %}
-        <li class="page-item {% if p == page %}active{% endif %}">
-          <a class="page-link" href="?{% for k,v in request.args.items() if k != 'page' %}{{ k }}={{ v }}&{% endfor %}page={{ p }}">{{ p }}</a>
-        </li>
-      {% endfor %}
-    </ul>
-  </nav>
-{% endif %}
+    <div class="card-footer d-flex align-items-center">
+      <p class="m-0 text-secondary">{{ persons|length }} / {{ total }} kişi</p>
+      {% if total > per_page %}
+        {% set total_pages = (total / per_page) | round(0, 'ceil') | int %}
+        <ul class="pagination m-0 ms-auto">
+          {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+              <a class="page-link" href="?{% for k,v in request.args.items() if k != 'page' %}{{ k }}={{ v }}&{% endfor %}page={{ p }}">{{ p }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </form>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-(function() {
+(function () {
   const checkAll = document.getElementById('check-all');
+  if (!checkAll) return;
   const checks = () => document.querySelectorAll('.row-check');
   const bulkBar = document.getElementById('bulk-bar');
   const bulkIds = document.getElementById('bulk-ids');
@@ -158,12 +195,12 @@
       const action = btn.dataset.action;
       const count = document.querySelectorAll('.row-check:checked').length;
       if (!count) return;
-      const confirms = {
+      const prompts = {
         activate: 'Seçili kişiler aktif edilsin mi?',
         deactivate: 'Seçili kişiler pasif edilsin mi?',
         delete: count + ' kişi silinsin mi? Bu işlem geri alınamaz.'
       };
-      if (!confirm(confirms[action])) return;
+      if (!confirm(prompts[action])) return;
       bulkAction.value = action;
       bulkForm.submit();
     });

@@ -1,74 +1,112 @@
 {% extends "school_admin/base.html" %}
 
 {% block title %}Günlük Yoklama{% endblock %}
+{% block page_pretitle %}Raporlar{% endblock %}
+{% block page_title %}Günlük Yoklama — {{ day.strftime('%Y-%m-%d') }}{% endblock %}
+
+{% block header_actions %}
+  <form method="get" class="d-flex gap-2">
+    <input type="date" class="form-control" name="date" value="{{ day.strftime('%Y-%m-%d') }}">
+    <button class="btn btn-primary">Göster</button>
+  </form>
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h4 mb-0">Günlük Yoklama — {{ day.strftime('%Y-%m-%d') }}</h1>
-  <form method="get" class="d-flex gap-2">
-    <input type="date" class="form-control form-control-sm" name="date"
-           value="{{ day.strftime('%Y-%m-%d') }}">
-    <button class="btn btn-primary btn-sm">Göster</button>
-  </form>
-</div>
-
-<div class="row g-3 mb-3">
-  <div class="col-md-3">
-    <div class="card"><div class="card-body">
-      <div class="small text-muted">Aktif Kişi</div>
-      <div class="fs-3 fw-bold">{{ totals.active }}</div>
-    </div></div>
+<div class="row row-deck row-cards mb-3">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto"><span class="bg-primary text-white avatar">👥</span></div>
+          <div class="col">
+            <div class="fs-3 fw-semibold display-number">{{ totals.active }}</div>
+            <div class="text-secondary small">Aktif Kişi</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="col-md-3">
-    <div class="card"><div class="card-body">
-      <div class="small text-muted">Gelen</div>
-      <div class="fs-3 fw-bold text-success">{{ totals.present }}</div>
-    </div></div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto"><span class="bg-success text-white avatar">✓</span></div>
+          <div class="col">
+            <div class="fs-3 fw-semibold display-number text-success">{{ totals.present }}</div>
+            <div class="text-secondary small">Gelen</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="col-md-3">
-    <div class="card"><div class="card-body">
-      <div class="small text-muted">Gelmeyen</div>
-      <div class="fs-3 fw-bold text-warning">{{ totals.absent }}</div>
-    </div></div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto"><span class="bg-warning text-white avatar">!</span></div>
+          <div class="col">
+            <div class="fs-3 fw-semibold display-number text-warning">{{ totals.absent }}</div>
+            <div class="text-secondary small">Gelmeyen</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="col-md-3">
-    <div class="card"><div class="card-body">
-      <div class="small text-muted">Geç Kalanlar (08:30↑)</div>
-      <div class="fs-3 fw-bold text-danger">{{ late|length }}</div>
-    </div></div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto"><span class="bg-danger text-white avatar">⏰</span></div>
+          <div class="col">
+            <div class="fs-3 fw-semibold display-number text-danger">{{ late|length }}</div>
+            <div class="text-secondary small">Geç Kalan (08:30↑)</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="card">
-  <div class="card-header fw-semibold">Gelenler</div>
-  <div class="card-body p-0">
+  <div class="card-header">
+    <h3 class="card-title">Gelenler</h3>
+  </div>
+  <div class="table-responsive">
     {% if rows %}
-      <table class="table table-sm table-hover mb-0">
+      <table class="table table-vcenter card-table table-hover">
         <thead>
           <tr>
-            <th>No</th><th>Ad Soyad</th><th>Sınıf</th>
-            <th>İlk Giriş</th><th>Son Giriş</th><th class="text-end">Olay</th>
+            <th>No</th>
+            <th>Kişi</th>
+            <th>Sınıf</th>
+            <th>İlk Giriş</th>
+            <th>Son Giriş</th>
+            <th class="text-end">Olay Sayısı</th>
           </tr>
         </thead>
         <tbody>
           {% for row in rows %}
-            <tr class="{% if row.first_entry.time() > (row.Person.first_entry if false else none) and row.first_entry.hour >= 9 %}table-warning{% endif %}">
-              <td><code>{{ row.Person.person_no }}</code></td>
+            {% set is_late = row.first_entry.hour >= 9 or (row.first_entry.hour == 8 and row.first_entry.minute >= 30) %}
+            <tr class="{% if is_late %}table-warning{% endif %}">
+              <td><code class="text-mono">{{ row.Person.person_no }}</code></td>
               <td>
-                <a href="{{ url_for('school_admin.person_detail', person_id=row.Person.id) }}">
-                  {{ row.Person.full_name }}
-                </a>
+                <div class="d-flex align-items-center">
+                  <span class="avatar avatar-xs avatar-initials rounded-circle me-2">{{ row.Person.full_name[0]|upper }}</span>
+                  <a class="text-reset" href="{{ url_for('school_admin.person_detail', person_id=row.Person.id) }}">{{ row.Person.full_name }}</a>
+                </div>
               </td>
-              <td>{{ row.Person.class_name or '—' }}</td>
-              <td>{{ row.first_entry.strftime('%H:%M:%S') }}</td>
-              <td>{{ row.last_entry.strftime('%H:%M:%S') }}</td>
-              <td class="text-end"><span class="badge bg-secondary">{{ row.event_count }}</span></td>
+              <td class="text-secondary">{{ row.Person.class_name or '—' }}</td>
+              <td class="text-mono">{{ row.first_entry.strftime('%H:%M:%S') }} {% if is_late %}<span class="badge bg-warning-lt ms-1">Geç</span>{% endif %}</td>
+              <td class="text-mono text-secondary">{{ row.last_entry.strftime('%H:%M:%S') }}</td>
+              <td class="text-end"><span class="badge bg-secondary-lt">{{ row.event_count }}</span></td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     {% else %}
-      <p class="text-muted m-3 small">Bu gün için kayıt yok.</p>
+      <div class="empty">
+        <p class="empty-title">Bu gün için giriş yok</p>
+      </div>
     {% endif %}
   </div>
 </div>

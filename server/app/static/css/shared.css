@@ -1,85 +1,96 @@
 /* ============================================================================
- * Shared UI — base typography, forms, auth screens.
- * Per-panel themes live in admin.css (super admin) and school.css.
+ * Yüz Tanıma — shared custom overrides on top of Tabler 1.4
+ * Tabler already provides the full design system; this file only tweaks a few
+ * brand details and reusable utilities.
  * ========================================================================== */
 
 :root {
-  --brand-primary: #2563eb;
-  --brand-primary-hover: #1d4ed8;
-  --brand-surface: #ffffff;
-  --brand-ink: #0f172a;
-  --brand-muted: #64748b;
-  --brand-danger: #dc2626;
-  --brand-success: #16a34a;
+  --brand-primary: #206bc4;     /* Tabler default primary */
+  --brand-muted: #6c7a91;
+  --brand-success: #2fb344;
+  --brand-danger: #d63939;
+  --brand-warning: #f59f00;
 }
 
-html, body {
-  height: 100%;
-}
-
+/* Smoother default font stack */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  color: var(--brand-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ---------- Auth screens ---------- */
-.auth-body {
-  background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
+/* ---------- Device status pill ---------- */
+.status-online   { --tblr-status-color: var(--tblr-success); }
+.status-offline  { --tblr-status-color: var(--tblr-danger); }
+.status-provisioning { --tblr-status-color: var(--tblr-secondary); }
+.status-disabled { --tblr-status-color: var(--tblr-gray-400); }
+
+.badge-status-online {
+  background-color: var(--tblr-success-lt);
+  color: var(--tblr-success);
+}
+.badge-status-offline {
+  background-color: var(--tblr-danger-lt);
+  color: var(--tblr-danger);
+}
+.badge-status-provisioning {
+  background-color: var(--tblr-yellow-lt);
+  color: var(--tblr-yellow);
+}
+.badge-status-disabled {
+  background-color: var(--tblr-gray-200);
+  color: var(--tblr-gray-700);
 }
 
-.auth-wrapper .card {
-  border: 0;
-  border-radius: 0.75rem;
+/* ---------- Live feed row highlight ---------- */
+@keyframes rowFadeIn {
+  from { background-color: rgba(32, 107, 196, 0.18); }
+  to   { background-color: transparent; }
+}
+.row-new {
+  animation: rowFadeIn 1.8s ease-out;
 }
 
-.auth-wrapper .card-body h1 {
-  font-weight: 700;
-  letter-spacing: -0.01em;
+/* ---------- Table helpers ---------- */
+.table-nowrap td,
+.table-nowrap th { white-space: nowrap; }
+
+.table-muted-row td { color: var(--tblr-secondary); }
+
+/* ---------- Avatar initials (when no photo available) ---------- */
+.avatar-initials {
+  background: linear-gradient(135deg, #4dabf7 0%, #206bc4 100%);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
-/* ---------- Buttons ---------- */
-.btn-primary {
-  background-color: var(--brand-primary);
-  border-color: var(--brand-primary);
-}
-.btn-primary:hover,
-.btn-primary:focus {
-  background-color: var(--brand-primary-hover);
-  border-color: var(--brand-primary-hover);
-}
-
-/* ---------- Tables ---------- */
-.table > :not(caption) > * > * {
-  padding-top: 0.6rem;
-  padding-bottom: 0.6rem;
-}
-
-.table-hover tbody tr:hover {
-  background-color: #f8fafc;
-}
-
-/* ---------- Badges ---------- */
-.badge-status-online  { background-color: var(--brand-success); color: #fff; }
-.badge-status-offline { background-color: var(--brand-danger);  color: #fff; }
-.badge-status-provisioning { background-color: #64748b; color: #fff; }
-.badge-status-disabled { background-color: #94a3b8; color: #fff; }
-
-/* ---------- Small helpers ---------- */
+/* ---------- Code-style text ---------- */
 .text-mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 0.875rem;
+  font-size: 0.82rem;
 }
 
-.kbd {
-  padding: 0.15rem 0.35rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.25rem;
-  font-family: ui-monospace, monospace;
+/* ---------- School admin top bar school name ---------- */
+.school-brand {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tblr-body-color);
+}
+.school-brand .school-subdomain {
+  font-weight: 400;
+  color: var(--tblr-secondary);
   font-size: 0.75rem;
-  background: #f8fafc;
 }
 
-/* ---------- Flash messages (non-auth pages) ---------- */
-.flash-messages {
-  margin-bottom: 1rem;
+/* ---------- Stat card subtle border on hover ---------- */
+.card-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  transition: all 160ms ease;
+}
+
+/* ---------- Turkish-friendly number formatting ---------- */
+.display-number {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }

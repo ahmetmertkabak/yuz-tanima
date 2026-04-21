@@ -1,130 +1,205 @@
 {% extends "school_admin/base.html" %}
 
 {% block title %}Dashboard{% endblock %}
+{% block page_pretitle %}Bugün · {{ school.name if school else '' }}{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block header_actions %}
+  <a href="{{ url_for('school_admin.persons_new') }}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 11h6m-3 -3v6"/></svg>
+    Yeni Kişi
+  </a>
+{% endblock %}
 
 {% block content %}
-<div class="row g-3">
-  <div class="col-md-3">
-    <div class="card">
+<div class="row row-deck row-cards">
+  <!-- Stat cards -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
       <div class="card-body">
-        <div class="small text-muted">Öğrenci</div>
-        <div class="fs-2 fw-bold">{{ stats.total_students }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card">
-      <div class="card-body">
-        <div class="small text-muted">Öğretmen / Personel</div>
-        <div class="fs-2 fw-bold">{{ stats.total_staff }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card">
-      <div class="card-body">
-        <div class="small text-muted">Bugün Giriş Yapan</div>
-        <div class="fs-2 fw-bold text-success">{{ stats.entered_today }}</div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card">
-      <div class="card-body">
-        <div class="small text-muted">Cihaz</div>
-        <div class="fs-5">
-          {% for d in devices %}
-            <div>
-              <span class="badge badge-status-{{ d.status }}">{{ d.status }}</span>
-              {{ d.device_name }}
-            </div>
-          {% else %}
-            <span class="text-muted">Henüz cihaz yok.</span>
-          {% endfor %}
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="bg-azure text-white avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M22 9l-10 -4l-10 4l10 4l10 -4v6"/><path d="M6 10.6v5.4a6 3 0 0 0 12 0v-5.4"/></svg>
+            </span>
+          </div>
+          <div class="col">
+            <div class="font-weight-medium display-number fs-3">{{ stats.total_students }}</div>
+            <div class="text-secondary small">Aktif Öğrenci</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="card mt-4">
-  <div class="card-header fw-semibold">
-    <i class="bi bi-broadcast"></i> Son Geçişler
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="bg-primary text-white avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0"/><path d="M9 8l1 0"/><path d="M9 12l1 0"/><path d="M9 16l1 0"/><path d="M14 8l1 0"/><path d="M14 12l1 0"/><path d="M14 16l1 0"/><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16"/></svg>
+            </span>
+          </div>
+          <div class="col">
+            <div class="font-weight-medium display-number fs-3">{{ stats.total_staff }}</div>
+            <div class="text-secondary small">Öğretmen / Personel</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="card-body p-0">
-    {% if recent_logs %}
-      <table class="table table-sm table-hover mb-0">
-        <thead>
-          <tr>
-            <th>Zaman</th>
-            <th>Kişi</th>
-            <th>Kapı</th>
-            <th>Yön</th>
-            <th>Sonuç</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for log in recent_logs %}
-            <tr>
-              <td class="small text-muted">{{ log.event_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-              <td>
-                {% if log.person %}
-                  {{ log.person.full_name }} <span class="text-muted small">({{ log.person.class_name or '—' }})</span>
-                {% else %}
-                  <em class="text-muted">— Bilinmeyen —</em>
-                {% endif %}
-              </td>
-              <td>{{ log.device.device_name if log.device else '—' }}</td>
-              <td><span class="badge bg-secondary">{{ log.direction }}</span></td>
-              <td>
-                <span class="badge bg-{{ 'success' if log.is_granted else 'danger' }}">
-                  {{ log.outcome }}
-                </span>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p class="text-muted m-3 small">Henüz kayıt yok.</p>
-    {% endif %}
+
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="bg-success text-white avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            </span>
+          </div>
+          <div class="col">
+            <div class="font-weight-medium display-number fs-3">{{ stats.entered_today }}</div>
+            <div class="text-secondary small">Bugün Giriş Yapan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="bg-warning text-white avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2"/><line x1="7" y1="20" x2="17" y2="20"/><line x1="9" y1="16" x2="9" y2="20"/><line x1="15" y1="16" x2="15" y2="20"/></svg>
+            </span>
+          </div>
+          <div class="col">
+            <div class="font-weight-medium fs-4">
+              {% for d in devices %}
+                <span class="badge badge-status-{{ d.status }} me-1"><span class="status-dot me-1 bg-{{ 'success' if d.status == 'online' else ('danger' if d.status == 'offline' else 'secondary') }}"></span>{{ d.device_name }}</span>
+              {% else %}
+                <span class="text-secondary small">Cihaz yok</span>
+              {% endfor %}
+            </div>
+            <div class="text-secondary small mt-1">Kapı Durumu</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live feed -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <span class="status-dot status-dot-animated bg-success me-2"></span>
+          Canlı Geçişler
+        </h3>
+        <div class="card-actions">
+          <a href="{{ url_for('school_admin.access_logs_list') }}" class="btn btn-sm btn-ghost-primary">Tüm geçişler →</a>
+        </div>
+      </div>
+      <div class="table-responsive">
+        {% if recent_logs %}
+          <table class="table table-vcenter card-table table-hover" id="live-feed-table">
+            <thead>
+              <tr>
+                <th>Zaman</th>
+                <th>Kişi</th>
+                <th>Sınıf</th>
+                <th>Kapı</th>
+                <th>Yön</th>
+                <th>Sonuç</th>
+                <th class="text-end w-1">Güven</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in recent_logs %}
+                <tr>
+                  <td class="text-secondary text-mono small">{{ log.event_at.strftime('%H:%M:%S') }}</td>
+                  <td>
+                    {% if log.person %}
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-xs avatar-initials rounded-circle me-2">{{ log.person.full_name[0]|upper }}</span>
+                        <span>{{ log.person.full_name }}</span>
+                      </div>
+                    {% else %}
+                      <span class="text-secondary"><em>— Bilinmeyen —</em></span>
+                    {% endif %}
+                  </td>
+                  <td class="text-secondary">{{ log.person.class_name if log.person else '—' }}</td>
+                  <td>{{ log.device.device_name if log.device else '—' }}</td>
+                  <td><span class="badge bg-secondary-lt">{{ log.direction }}</span></td>
+                  <td>
+                    {% if log.is_granted %}
+                      <span class="badge bg-success-lt">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-xs me-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg>
+                        geçiş
+                      </span>
+                    {% else %}
+                      <span class="badge bg-danger-lt">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-xs me-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+                        reddedildi
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end text-secondary text-mono small">
+                    {{ ('%.2f' % log.confidence) if log.confidence else '—' }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="empty py-5">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 12l2 2l4 -4"/><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/></svg>
+            </div>
+            <p class="empty-title">Henüz geçiş kaydı yok</p>
+            <p class="empty-subtitle text-secondary">İlk geçiş olduğunda burada canlı olarak görünecek.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
-        integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
-        crossorigin="anonymous"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
 (function () {
-  const feedBody = document.querySelector("table tbody");
+  const feedBody = document.querySelector('#live-feed-table tbody');
   if (!feedBody) return;
-  const socket = io("/", { transports: ["websocket", "polling"] });
-
-  socket.on("connect", () => socket.emit("join_school"));
-
-  socket.on("access_log", (data) => {
-    const when = data.event_at ? new Date(data.event_at).toLocaleTimeString("tr-TR") : "";
-    const outcomeClass = data.is_granted ? "success" : "danger";
+  const socket = io('/', { transports: ['websocket', 'polling'] });
+  socket.on('connect', () => socket.emit('join_school'));
+  socket.on('access_log', (data) => {
+    const when = data.event_at ? new Date(data.event_at).toLocaleTimeString('tr-TR') : '';
+    const granted = data.is_granted;
     const name = data.person_name
-      ? `${data.person_name} <span class="text-muted small">(${data.person_class || "—"})</span>`
-      : "<em class='text-muted'>— Bilinmeyen —</em>";
-    const tr = document.createElement("tr");
-    tr.className = "table-info";
+      ? `<div class="d-flex align-items-center"><span class="avatar avatar-xs avatar-initials rounded-circle me-2">${data.person_name[0].toUpperCase()}</span>${data.person_name}</div>`
+      : '<span class="text-secondary"><em>— Bilinmeyen —</em></span>';
+    const confidence = typeof data.confidence === 'number' ? data.confidence.toFixed(2) : '—';
+    const tr = document.createElement('tr');
+    tr.className = 'row-new';
     tr.innerHTML = `
-      <td class="small text-muted">${when}</td>
+      <td class="text-secondary text-mono small">${when}</td>
       <td>${name}</td>
-      <td>${data.device_name || "—"}</td>
-      <td><span class="badge bg-secondary">${data.direction}</span></td>
-      <td><span class="badge bg-${outcomeClass}">${data.outcome}</span></td>
+      <td class="text-secondary">${data.person_class || '—'}</td>
+      <td>${data.device_name || '—'}</td>
+      <td><span class="badge bg-secondary-lt">${data.direction}</span></td>
+      <td>${granted
+        ? '<span class="badge bg-success-lt">✓ geçiş</span>'
+        : '<span class="badge bg-danger-lt">✕ reddedildi</span>'}</td>
+      <td class="text-end text-secondary text-mono small">${confidence}</td>
     `;
     feedBody.insertBefore(tr, feedBody.firstChild);
-    setTimeout(() => tr.classList.remove("table-info"), 1500);
-    // Keep list capped at 30 rows
-    while (feedBody.children.length > 30) {
-      feedBody.removeChild(feedBody.lastChild);
-    }
+    while (feedBody.children.length > 25) feedBody.removeChild(feedBody.lastChild);
   });
 })();
 </script>

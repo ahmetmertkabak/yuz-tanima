@@ -1,75 +1,90 @@
 {% extends "school_admin/base.html" %}
 
 {% block title %}Gelmeyenler{% endblock %}
+{% block page_pretitle %}Raporlar{% endblock %}
+{% block page_title %}Gelmeyenler — {{ day.strftime('%Y-%m-%d') }}{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-3">Gelmeyenler — {{ day.strftime('%Y-%m-%d') }}</h1>
-
-<form method="get" class="row g-2 mb-3">
-  <div class="col-md-3">
-    <input type="date" class="form-control form-control-sm" name="date"
-           value="{{ day.strftime('%Y-%m-%d') }}">
-  </div>
-  <div class="col-md-3">
-    <select class="form-select form-select-sm" name="role">
-      <option value="">Sadece öğrenciler</option>
-      <option value="student" {% if role == 'student' %}selected{% endif %}>Öğrenciler</option>
-      <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Öğretmenler</option>
-      <option value="staff" {% if role == 'staff' %}selected{% endif %}>Personel</option>
-    </select>
-  </div>
-  <div class="col-md-3">
-    <select class="form-select form-select-sm" name="class_name">
-      <option value="">Tüm sınıflar</option>
-      {% for c in classes %}
-        <option value="{{ c }}" {% if c == class_name %}selected{% endif %}>{{ c }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-3">
-    <button class="btn btn-primary btn-sm">Filtrele</button>
-  </div>
-</form>
-
 <div class="card">
-  <div class="card-header fw-semibold d-flex justify-content-between">
-    <span>{{ absent|length }} kişi gelmemiş</span>
-    <span class="small text-muted">Veli telefonları iletişim için hazır.</span>
+  <div class="card-body border-bottom py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Tarih</label>
+        <input type="date" class="form-control" name="date" value="{{ day.strftime('%Y-%m-%d') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Rol</label>
+        <select class="form-select" name="role">
+          <option value="">Sadece öğrenciler</option>
+          <option value="student" {% if role == 'student' %}selected{% endif %}>Öğrenciler</option>
+          <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Öğretmenler</option>
+          <option value="staff" {% if role == 'staff' %}selected{% endif %}>Personel</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Sınıf</label>
+        <select class="form-select" name="class_name">
+          <option value="">Tüm sınıflar</option>
+          {% for c in classes %}<option value="{{ c }}" {% if c == class_name %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-primary w-100">Filtrele</button>
+      </div>
+    </form>
   </div>
-  <div class="card-body p-0">
+
+  <div class="card-body py-2 border-bottom">
+    <div class="d-flex align-items-center">
+      <p class="m-0"><strong>{{ absent|length }}</strong> kişi gelmemiş</p>
+      <p class="m-0 ms-auto text-secondary small">Veli telefonları arama için hazır.</p>
+    </div>
+  </div>
+
+  <div class="table-responsive">
     {% if absent %}
-      <table class="table table-sm table-hover mb-0">
+      <table class="table table-vcenter card-table table-hover">
         <thead>
           <tr>
             <th>Sınıf</th>
             <th>No</th>
-            <th>Ad Soyad</th>
-            <th>Veli</th>
+            <th>Kişi</th>
+            <th>Veli Adı</th>
             <th>Telefon</th>
           </tr>
         </thead>
         <tbody>
           {% for p in absent %}
             <tr>
-              <td>{{ p.class_name or '—' }}</td>
-              <td><code>{{ p.person_no }}</code></td>
+              <td class="text-secondary">{{ p.class_name or '—' }}</td>
+              <td><code class="text-mono">{{ p.person_no }}</code></td>
               <td>
-                <a href="{{ url_for('school_admin.person_detail', person_id=p.id) }}">
-                  {{ p.full_name }}
-                </a>
+                <div class="d-flex align-items-center">
+                  <span class="avatar avatar-xs avatar-initials rounded-circle me-2">{{ p.full_name[0]|upper }}</span>
+                  <a class="text-reset" href="{{ url_for('school_admin.person_detail', person_id=p.id) }}">{{ p.full_name }}</a>
+                </div>
               </td>
               <td>{{ p.parent_name or '—' }}</td>
               <td>
                 {% if p.parent_phone %}
-                  <a href="tel:{{ p.parent_phone }}">{{ p.parent_phone }}</a>
-                {% else %}—{% endif %}
+                  <a href="tel:{{ p.parent_phone }}" class="btn btn-sm btn-outline-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2"/></svg>
+                    {{ p.parent_phone }}
+                  </a>
+                {% else %}<span class="text-secondary">—</span>{% endif %}
               </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     {% else %}
-      <p class="text-muted m-3 small">Herkes gelmiş 🎉</p>
+      <div class="empty">
+        <div class="empty-icon text-success">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg>
+        </div>
+        <p class="empty-title">Herkes gelmiş 🎉</p>
+        <p class="empty-subtitle text-secondary">Seçilen filtreye göre gelmeyen kimse yok.</p>
+      </div>
     {% endif %}
   </div>
 </div>

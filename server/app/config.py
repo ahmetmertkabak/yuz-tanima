@@ -109,6 +109,27 @@ class DevelopmentConfig(BaseConfig):
     WTF_CSRF_ENABLED = False  # makes local API testing easier
     SQLALCHEMY_ECHO = False
 
+    # Default to SQLite for zero-infrastructure local demo; override via DATABASE_URL
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URL",
+        f"sqlite:///{BASE_DIR / 'instance' / 'dev.db'}",
+    )
+
+    # Avoid Postgres-only pool options when using SQLite
+    SQLALCHEMY_ENGINE_OPTIONS: dict = (
+        {"pool_pre_ping": True}
+        if (os.getenv("DATABASE_URL") or "sqlite").startswith("postgres")
+        else {}
+    )
+
+    # No Redis required in dev — Socket.IO falls back to in-process threading
+    SOCKETIO_MESSAGE_QUEUE = os.getenv("REDIS_URL", "") or None
+    SOCKETIO_ASYNC_MODE = "threading"
+
+    # Rate limiter in memory, not Redis
+    RATELIMIT_STORAGE_URI = os.getenv("REDIS_URL", "memory://")
+    RATELIMIT_ENABLED = False  # too noisy during local dev
+
     # Allow plain HTTP during local dev
     PREFERRED_URL_SCHEME = "http"
 

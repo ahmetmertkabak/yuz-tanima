@@ -1,37 +1,37 @@
 {% extends "shared/base.html" %}
-{% from "shared/partials/form_field.html" import render_field %}
 
 {% block title %}2FA Doğrulama{% endblock %}
+{% block body_class %}d-flex flex-column bg-light{% endblock %}
 
 {% block layout %}
-<div class="auth-wrapper d-flex align-items-center min-vh-100">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm">
-          <div class="card-body p-4">
-            <div class="text-center mb-4">
-              <i class="bi bi-shield-lock display-5 text-primary"></i>
-              <h1 class="h4 mt-2">İki Faktörlü Doğrulama</h1>
-              <p class="text-muted small">
-                Authenticator uygulamanızdan 6 haneli kodu girin.
-              </p>
-            </div>
+<div class="page page-center">
+  <div class="container container-tight py-4">
+    <div class="card card-md">
+      <div class="card-body text-center">
+        <div class="mb-4">
+          <span class="avatar avatar-lg mb-3" style="background:#e7f5ff;color:#1971c2;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"/>
+              <path d="M9 12l2 2l4 -4"/>
+            </svg>
+          </span>
+          <h2 class="h3">İki Faktörlü Doğrulama</h2>
+          <p class="text-secondary">Authenticator uygulamanızdan 6 haneli kodu girin.</p>
+        </div>
 
-            {% include "shared/partials/flash.html" %}
+        {% include "shared/partials/flash.html" %}
 
-            <form method="post" novalidate>
-              {{ form.hidden_tag() }}
-              {{ render_field(form.code, placeholder="123456") }}
-              {{ form.submit(class="btn btn-primary w-100") }}
-            </form>
-
-            <div class="text-center mt-3 small">
-              <a href="{{ url_for('auth.login') }}" class="text-muted">
-                Girişe dön
-              </a>
-            </div>
+        <form method="post" autocomplete="off" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.code(class="form-control text-center fs-2 tracking-widest" ~ (" is-invalid" if form.code.errors), placeholder="••••••", maxlength="6", inputmode="numeric", autocomplete="one-time-code") }}
+            {% if form.code.errors %}<div class="invalid-feedback d-block">{{ form.code.errors[0] }}</div>{% endif %}
           </div>
+          <button type="submit" class="btn btn-primary w-100">Doğrula</button>
+        </form>
+
+        <div class="text-center mt-3">
+          <a href="{{ url_for('auth.login') }}" class="text-muted small">← Girişe dön</a>
         </div>
       </div>
     </div>

@@ -1,74 +1,123 @@
 {% extends "super_admin/base.html" %}
 
 {% block title %}Dashboard{% endblock %}
+{% block page_pretitle %}Genel Bakış{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block header_actions %}
-  <a href="{{ url_for('super_admin.schools_new') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg"></i> Yeni Okul
+  <a href="{{ url_for('super_admin.schools_new') }}" class="btn btn-primary d-none d-sm-inline-flex">
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Yeni Okul
   </a>
 {% endblock %}
 
 {% block content %}
-<div class="row g-3">
-  <div class="col-md-3">
-    <div class="stat-card">
-      <div class="stat-label">Toplam Okul</div>
-      <div class="stat-value">{{ stats.total_schools }}</div>
-      <div class="stat-sub">{{ stats.active_schools }} aktif</div>
+<div class="row row-deck row-cards">
+  <!-- ====== Stat cards ====== -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="bg-primary text-white avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0"/><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4"/><path d="M5 21l0 -10.15"/><path d="M19 21l0 -10.15"/><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"/></svg>
+            </span>
+          </div>
+          <div class="col">
+            <div class="font-weight-medium display-number">{{ stats.total_schools }}</div>
+            <div class="text-secondary small">Toplam Okul</div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex">
+        <div class="progress progress-sm flex-fill" style="border-radius: 0;">
+          <div class="progress-bar bg-primary" style="width: {{ (stats.active_schools / stats.total_schools * 100) if stats.total_schools else 0 }}%"></div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="col-md-3">
-    <div class="stat-card">
-      <div class="stat-label">Toplam Kişi</div>
-      <div class="stat-value">{{ stats.total_persons }}</div>
-      <div class="stat-sub">tüm okullarda</div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-card stat-ok">
-      <div class="stat-label">Online Cihaz</div>
-      <div class="stat-value">{{ stats.online_devices }}<span class="text-muted h6">/{{ stats.total_devices }}</span></div>
-      <div class="stat-sub">son 2 dakika</div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-card {% if stats.offline_devices %}stat-bad{% endif %}">
-      <div class="stat-label">Offline Cihaz</div>
-      <div class="stat-value">{{ stats.offline_devices }}</div>
-      <div class="stat-sub">bugün {{ stats.access_today }} geçiş</div>
-    </div>
-  </div>
-</div>
 
-<div class="row g-3 mt-1">
-  <!-- Stale devices -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="bg-azure text-white avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/></svg>
+            </span>
+          </div>
+          <div class="col">
+            <div class="font-weight-medium display-number">{{ stats.total_persons }}</div>
+            <div class="text-secondary small">Toplam Kişi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="bg-success text-white avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><polyline points="9 12 11 14 15 10"/></svg>
+            </span>
+          </div>
+          <div class="col">
+            <div class="font-weight-medium">
+              <span class="display-number">{{ stats.online_devices }}</span>
+              <small class="text-secondary">/ {{ stats.total_devices }}</small>
+            </div>
+            <div class="text-secondary small">Online Cihaz</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <span class="{% if stats.offline_devices %}bg-danger{% else %}bg-gray{% endif %} text-white avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 3l18 18"/><path d="M9 17v-7a2 2 0 0 1 2 -2h2"/><path d="M15 10v7"/></svg>
+            </span>
+          </div>
+          <div class="col">
+            <div class="font-weight-medium display-number">{{ stats.offline_devices }}</div>
+            <div class="text-secondary small">Offline Cihaz · Bugün {{ stats.access_today }} geçiş</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Stale devices ====== -->
   <div class="col-lg-6">
-    <div class="card-section">
-      <header>
-        <span><i class="bi bi-exclamation-triangle text-danger"></i> Offline / Uzun Süredir Sessiz Cihazlar</span>
-        <a class="small" href="{{ url_for('super_admin.devices_list') }}">tümü →</a>
-      </header>
-      <div class="card-section-body">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon text-danger me-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01"/><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75"/></svg>
+          Offline Cihazlar
+        </h3>
+        <div class="card-actions">
+          <a href="{{ url_for('super_admin.devices_list') }}" class="btn btn-sm btn-ghost-primary">Tümü</a>
+        </div>
+      </div>
+      <div class="table-responsive">
         {% if stale_devices %}
-          <table class="table table-sm table-hover mb-0">
+          <table class="table table-vcenter card-table">
             <thead>
-              <tr>
-                <th>Okul</th>
-                <th>Cihaz</th>
-                <th>Son Heartbeat</th>
-              </tr>
+              <tr><th>Okul</th><th>Cihaz</th><th class="w-1">Son Heartbeat</th></tr>
             </thead>
             <tbody>
               {% for d in stale_devices %}
                 <tr>
                   <td>{{ d.school.name }}</td>
-                  <td>
-                    <a href="{{ url_for('super_admin.device_detail', device_id=d.id) }}">
-                      {{ d.device_name }}
-                    </a>
-                  </td>
-                  <td class="text-muted small">
+                  <td><a href="{{ url_for('super_admin.device_detail', device_id=d.id) }}">{{ d.device_name }}</a></td>
+                  <td class="text-secondary">
                     {% if d.last_heartbeat_at %}
                       {{ d.last_heartbeat_at.strftime('%Y-%m-%d %H:%M') }}
                     {% else %}
@@ -80,38 +129,40 @@
             </tbody>
           </table>
         {% else %}
-          <p class="text-muted small m-3">Tüm cihazlar online.</p>
+          <div class="empty py-5">
+            <div class="empty-icon text-success">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="40" height="40" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+            </div>
+            <p class="empty-title">Tüm cihazlar online</p>
+            <p class="empty-subtitle text-secondary">Raporlanan hiçbir problem yok.</p>
+          </div>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <!-- Expiring schools -->
+  <!-- ====== Expiring subscriptions ====== -->
   <div class="col-lg-6">
-    <div class="card-section">
-      <header>
-        <span><i class="bi bi-calendar-event text-warning"></i> Süresi Dolmak Üzere Olan Okullar</span>
-      </header>
-      <div class="card-section-body">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon text-warning me-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
+          Süresi Dolmak Üzere
+        </h3>
+      </div>
+      <div class="table-responsive">
         {% if expiring_schools %}
-          <table class="table table-sm table-hover mb-0">
-            <thead>
-              <tr>
-                <th>Okul</th>
-                <th>Durum</th>
-                <th>Bitiş</th>
-              </tr>
-            </thead>
+          <table class="table table-vcenter card-table">
+            <thead><tr><th>Okul</th><th>Durum</th><th class="w-1">Bitiş</th></tr></thead>
             <tbody>
               {% for s in expiring_schools %}
                 <tr>
+                  <td><a href="{{ url_for('super_admin.school_detail', school_id=s.id) }}">{{ s.name }}</a></td>
                   <td>
-                    <a href="{{ url_for('super_admin.school_detail', school_id=s.id) }}">
-                      {{ s.name }}
-                    </a>
+                    {% set status_class = {'active':'success','trial':'info','expired':'warning','suspended':'danger'}.get(s.subscription_status,'secondary') %}
+                    <span class="badge bg-{{ status_class }}-lt">{{ s.subscription_status }}</span>
                   </td>
-                  <td><span class="badge bg-secondary">{{ s.subscription_status }}</span></td>
-                  <td class="small">
+                  <td class="text-secondary">
                     {% set ends = s.subscription_expires_at or s.trial_expires_at %}
                     {% if ends %}{{ ends.strftime('%Y-%m-%d') }}{% endif %}
                   </td>
@@ -120,45 +171,53 @@
             </tbody>
           </table>
         {% else %}
-          <p class="text-muted small m-3">Yakın zamanda sona erecek abonelik yok.</p>
+          <div class="empty py-5">
+            <p class="empty-title">Yakında sona erecek abonelik yok</p>
+          </div>
         {% endif %}
       </div>
     </div>
   </div>
-</div>
 
-<!-- Audit feed -->
-<div class="card-section">
-  <header>
-    <span><i class="bi bi-clock-history"></i> Son Sistem Olayları</span>
-  </header>
-  <div class="card-section-body">
-    {% if recent_audit %}
-      <table class="table table-sm table-hover mb-0">
-        <thead>
-          <tr>
-            <th>Zaman</th>
-            <th>Kullanıcı</th>
-            <th>Eylem</th>
-            <th>Kaynak</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for a in recent_audit %}
-            <tr>
-              <td class="small text-muted">{{ a.event_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-              <td class="small">{{ a.user_email_cached or '—' }} <span class="text-muted">({{ a.user_role_cached or '—' }})</span></td>
-              <td><code class="small">{{ a.action }}</code></td>
-              <td class="small text-muted">
-                {{ a.resource_type or '' }}{% if a.resource_label %} · {{ a.resource_label }}{% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p class="text-muted small m-3">Henüz kayıt yok.</p>
-    {% endif %}
+  <!-- ====== Audit feed ====== -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+          Son Sistem Olayları
+        </h3>
+      </div>
+      <div class="table-responsive">
+        {% if recent_audit %}
+          <table class="table table-vcenter card-table table-nowrap">
+            <thead>
+              <tr><th>Zaman</th><th>Kullanıcı</th><th>Eylem</th><th>Kaynak</th><th>IP</th></tr>
+            </thead>
+            <tbody>
+              {% for a in recent_audit %}
+                <tr>
+                  <td class="text-secondary small">{{ a.event_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                  <td>
+                    {% if a.user_email_cached %}
+                      <div>{{ a.user_email_cached }}</div>
+                      <div class="text-secondary small">{{ a.user_role_cached or '—' }}</div>
+                    {% else %}<span class="text-secondary">—</span>{% endif %}
+                  </td>
+                  <td><code class="text-primary">{{ a.action }}</code></td>
+                  <td class="text-secondary">{{ a.resource_label or a.resource_type or '—' }}</td>
+                  <td class="text-secondary small">{{ a.ip_address or '—' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="empty py-5">
+            <p class="empty-title">Henüz kayıt yok</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

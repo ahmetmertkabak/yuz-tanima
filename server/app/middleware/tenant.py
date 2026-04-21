@@ -51,10 +51,9 @@ class TenantContext:
     school: Optional[School]          # SQLAlchemy instance, None for super-admin routes
     is_super_admin_host: bool         # True when host == admin.<BASE_DOMAIN>
     is_api_host: bool                 # True when host == api.<BASE_DOMAIN>
-
-    @property
-    def school_id(self) -> Optional[int]:
-        return self.school.id if self.school else None
+    # Cache the primary key at resolution time so we never trigger a lazy-load
+    # inside the `do_orm_execute` event handler (would cause infinite recursion).
+    school_id: Optional[int] = None
 
 
 def get_tenant_context() -> TenantContext:
@@ -139,6 +138,7 @@ def _resolve_tenant() -> Optional[Response]:
         if not ctx.school.is_active:
             g.tenant_context = ctx
             return _tenant_inactive_response(ctx.school)
+        ctx.school_id = ctx.school.id
 
     g.tenant_context = ctx
     return None
@@ -225,18 +225,27 @@ def _apply_tenant_filter(state) -> None:
     if getattr(g, "bypass_tenant_filter", False):
         return
 
+    # Prevent re-entry when SQLAlchemy re-compiles the same statement internally.
+    if state.execution_options.get("_tenant_filter_applied"):
+        return
+
     ctx = getattr(g, "tenant_context", None)
     if ctx is None or ctx.school is None:
         return
 
+    sid = ctx.school_id
     for model in TENANT_MODELS:
         state.statement = state.statement.options(
             with_loader_criteria(
                 model,
-                lambda cls, sid=ctx.school_id: cls.school_id == sid,
+                lambda cls, _sid=sid: cls.school_id == _sid,
                 include_aliases=True,
+                track_closure_variables=False,
             )
         )
+
+    # Mark this statement so recursive compiles don't re-apply the same options
+    state.statement = state.statement.execution_options(_tenant_filter_applied=True)
 
 
 # ---------------------------------------------------------------------------
