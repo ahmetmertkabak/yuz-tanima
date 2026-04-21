@@ -116,13 +116,23 @@ class DevelopmentConfig(BaseConfig):
 class TestingConfig(BaseConfig):
     DEBUG = False
     TESTING = True
+    # Default to in-memory SQLite so unit tests need zero infrastructure.
+    # CI / integration runs can override via TEST_DATABASE_URL.
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "TEST_DATABASE_URL",
-        "postgresql+psycopg2://postgres:postgres@localhost:5432/yuz_tanima_test",
+        "sqlite:///:memory:",
     )
+    SQLALCHEMY_ENGINE_OPTIONS: dict = {}  # pool options not valid for sqlite://
     WTF_CSRF_ENABLED = False
     BCRYPT_LOG_ROUNDS = 4  # faster tests
     RATELIMIT_ENABLED = False
+    # A stable Fernet key for tests so face_crypto has something to work with.
+    # Test-only Fernet key is set by conftest (Fernet.generate_key())
+    FACE_ENCRYPTION_KEY = os.getenv("FACE_ENCRYPTION_KEY", "")
+    SESSION_COOKIE_SECURE = False
+    REMEMBER_COOKIE_SECURE = False
+    SOCKETIO_MESSAGE_QUEUE = None  # disable redis queue during tests
+    SOCKETIO_ASYNC_MODE = "threading"
 
 
 class ProductionConfig(BaseConfig):

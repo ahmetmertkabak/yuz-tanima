@@ -196,10 +196,9 @@ def _register_error_handlers(app: Flask) -> None:
 
 def _register_middleware(app: Flask) -> None:
     """Register request hooks (tenant resolution, etc.)."""
-    # Tenant middleware will be implemented in T1.7
-    # from app.middleware.tenant import register_tenant_middleware
-    # register_tenant_middleware(app)
-    pass
+    from app.middleware.tenant import register_tenant_middleware
+
+    register_tenant_middleware(app)
 
 
 def _register_cli_commands(app: Flask) -> None:
@@ -209,10 +208,40 @@ def _register_cli_commands(app: Flask) -> None:
     @app.cli.command("create-super-admin")
     @click.option("--username", prompt=True)
     @click.option("--email", prompt=True)
-    @click.option("--password", prompt=True, hide_input=True, confirmation_prompt=True)
+    @click.option(
+        "--password",
+        prompt=True,
+        hide_input=True,
+        confirmation_prompt=True,
+    )
     def create_super_admin(username: str, email: str, password: str):
-        """Create a platform-level super admin user (T2.1)."""
-        click.echo("Super admin creation will be implemented in T2.1.")
+        """Create a platform-level super admin user."""
+        from app.extensions import db
+        from app.models import User, UserRole
+
+        existing = (
+            db.session.query(User)
+            .filter(
+                User.school_id.is_(None),
+                db.or_(User.username == username.lower(), User.email == email.lower()),
+            )
+            .first()
+        )
+        if existing:
+            click.echo(f"User with that username or email already exists (id={existing.id}).")
+            return
+
+        user = User(
+            username=username,
+            email=email,
+            role=UserRole.SUPER_ADMIN.value,
+            is_active=True,
+            school_id=None,
+        )
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        click.echo(f"✅ Super admin created (id={user.id}).")
 
     @app.cli.command("routes-list")
     def routes_list():
@@ -220,3 +249,16 @@ def _register_cli_commands(app: Flask) -> None:
         for rule in sorted(app.url_map.iter_rules(), key=lambda r: r.rule):
             methods = ",".join(sorted(rule.methods - {"HEAD", "OPTIONS"}))
             click.echo(f"{methods:20s} {rule.rule:50s} -> {rule.endpoint}")
+
+    @app.cli.command("dev-reset-db")
+    def dev_reset_db():
+        """DROP and recreate every table (dev only — refuses in production)."""
+        if app.config.get("FLASK_ENV") == "production" or not app.config.get("DEBUG"):
+            click.echo("❌ Refusing to run in non-debug / production environment.")
+            return
+        from app.extensions import db
+
+        click.confirm("This will DROP ALL TABLES. Continue?", abort=True)
+        db.drop_all()
+        db.create_all()
+        click.echo("✅ Schema recreated from models.")
