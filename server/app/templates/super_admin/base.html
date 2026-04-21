@@ -1,0 +1,64 @@
+{% extends "shared/base.html" %}
+
+{% block theme %}dark-admin{% endblock %}
+{% block body_class %}admin-body{% endblock %}
+
+{% block extra_head %}
+  <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block layout %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <i class="bi bi-shield-lock-fill"></i>
+      <span>Super Admin</span>
+    </div>
+    <nav class="admin-nav">
+      <a class="{{ 'active' if request.endpoint == 'super_admin.dashboard' }}"
+         href="{{ url_for('super_admin.dashboard') }}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+      <a class="{{ 'active' if request.endpoint and request.endpoint.startswith('super_admin.schools') or request.endpoint == 'super_admin.school_detail' or request.endpoint == 'super_admin.school_edit' }}"
+         href="{{ url_for('super_admin.schools_list') }}">
+        <i class="bi bi-building"></i> Okullar
+      </a>
+      <a class="{{ 'active' if request.endpoint and 'device' in request.endpoint }}"
+         href="{{ url_for('super_admin.devices_list') }}">
+        <i class="bi bi-cpu"></i> Cihazlar
+      </a>
+    </nav>
+
+    <div class="admin-user">
+      <div class="small text-muted">Giriş yapan:</div>
+      <div>{{ current_user.username }}</div>
+      <div class="small text-muted">{{ current_user.email }}</div>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="mt-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-outline-light w-100" type="submit">
+          <i class="bi bi-box-arrow-right"></i> Çıkış
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="h5 mb-0">{% block page_title %}{% endblock %}</h1>
+      <div class="admin-header-actions">
+        {% block header_actions %}{% endblock %}
+      </div>
+    </header>
+
+    <div class="admin-content">
+      {% include "shared/partials/flash.html" %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% block admin_scripts %}{% endblock %}
+{% endblock %}

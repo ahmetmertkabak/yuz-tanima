@@ -1,0 +1,49 @@
+{% extends "super_admin/base.html" %}
+
+{% block title %}API Key{% endblock %}
+{% block page_title %}Cihaz API Key'i{% endblock %}
+
+{% block content %}
+<div class="alert alert-warning">
+  <strong><i class="bi bi-exclamation-triangle"></i> Dikkat:</strong>
+  Bu key bir daha gösterilmeyecek. Şimdi kopyalayın ve Pi'nin
+  <code>/etc/yuz-tanima/edge.env</code> dosyasına yazın.
+</div>
+
+<div class="card-section">
+  <header><span>Cihaz Bilgileri</span></header>
+  <div class="card-section-body p-3">
+    <dl class="row mb-0 small">
+      <dt class="col-sm-3">Okul</dt>
+      <dd class="col-sm-9">{{ device.school.name }}</dd>
+      <dt class="col-sm-3">Cihaz Adı</dt>
+      <dd class="col-sm-9">{{ device.device_name }}</dd>
+      <dt class="col-sm-3">DEVICE_ID (UUID)</dt>
+      <dd class="col-sm-9"><code id="device-uuid">{{ device.device_uuid }}</code></dd>
+      <dt class="col-sm-3">API_KEY</dt>
+      <dd class="col-sm-9">
+        <code id="api-key" class="text-break">{{ api_key }}</code>
+        <button class="btn btn-sm btn-outline-primary ms-2" type="button"
+                onclick="navigator.clipboard.writeText(document.getElementById('api-key').innerText); this.innerText='Kopyalandı ✓';">
+          Kopyala
+        </button>
+      </dd>
+    </dl>
+  </div>
+</div>
+
+<div class="card-section">
+  <header><span>Pi Provisioning</span></header>
+  <div class="card-section-body p-3">
+    <p class="small">Pi'de <code>sudo bash provision.sh</code> komutu verince aşağıdaki değerleri girin:</p>
+    <pre class="bg-light p-3 rounded small">DEVICE_ID={{ device.device_uuid }}
+SCHOOL_ID={{ device.school_id }}
+API_KEY={{ api_key }}
+SERVER_URL=https://api.{{ config.BASE_DOMAIN }}</pre>
+  </div>
+</div>
+
+<a href="{{ url_for('super_admin.device_detail', device_id=device.id) }}" class="btn btn-primary mt-3">
+  Cihaz detayına git
+</a>
+{% endblock %}

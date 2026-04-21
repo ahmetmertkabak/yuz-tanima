@@ -1,0 +1,37 @@
+{% extends "shared/base.html" %}
+{% from "shared/partials/form_field.html" import render_field %}
+
+{% block title %}2FA Kurulumu{% endblock %}
+
+{% block layout %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="h4 mb-3">İki Faktörlü Doğrulama Kurulumu</h1>
+          <ol class="small mb-3">
+            <li>Telefonunuzda Google Authenticator veya 1Password gibi bir uygulama açın.</li>
+            <li>Aşağıdaki QR kodu taratın veya anahtarı manuel girin.</li>
+            <li>Uygulamanın ürettiği 6 haneli kodu aşağıya girin.</li>
+          </ol>
+
+          <div class="text-center my-4">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ provisioning_uri|urlencode }}"
+                 alt="2FA QR" class="img-fluid" style="max-width: 200px;">
+            <p class="text-muted small mt-2 mb-0">Veya anahtarı manuel girin:</p>
+            <code class="d-block text-monospace small mt-1">{{ secret }}</code>
+          </div>
+
+          <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+            {{ render_field(form.code, placeholder="123456") }}
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('auth.change_password') }}" class="btn btn-link">İptal</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "shared/base.html" %}
+
+{% block extra_head %}
+  <link href="{{ url_for('static', filename='css/school.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% set school = g.get('tenant_context').school if g.get('tenant_context') else None %}
+
+{% block layout %}
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom school-topbar sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="{{ url_for('school_admin.dashboard') }}">
+      <i class="bi bi-buildings text-primary"></i>
+      {{ school.name if school else config.APP_NAME }}
+    </a>
+
+    <div class="d-flex align-items-center gap-3 ms-auto">
+      <span class="small text-muted d-none d-md-inline">
+        {{ current_user.full_name or current_user.username }}
+        <span class="badge bg-secondary ms-1">{{ current_user.role }}</span>
+      </span>
+      <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                data-bs-toggle="dropdown">
+          <i class="bi bi-person-circle"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+            <i class="bi bi-key"></i> Şifre Değiştir
+          </a></li>
+          <li><a class="dropdown-item" href="{{ url_for('auth.setup_two_factor') }}">
+            <i class="bi bi-shield-lock"></i> 2FA Ayarları
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form method="post" action="{{ url_for('auth.logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="dropdown-item text-danger">
+                <i class="bi bi-box-arrow-right"></i> Çıkış
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid py-4 school-content">
+  {% include "shared/partials/flash.html" %}
+  {% block content %}{% endblock %}
+</div>
+{% endblock %}

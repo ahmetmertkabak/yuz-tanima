@@ -1,0 +1,164 @@
+{% extends "super_admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block header_actions %}
+  <a href="{{ url_for('super_admin.schools_new') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> Yeni Okul
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Toplam Okul</div>
+      <div class="stat-value">{{ stats.total_schools }}</div>
+      <div class="stat-sub">{{ stats.active_schools }} aktif</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Toplam Kişi</div>
+      <div class="stat-value">{{ stats.total_persons }}</div>
+      <div class="stat-sub">tüm okullarda</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card stat-ok">
+      <div class="stat-label">Online Cihaz</div>
+      <div class="stat-value">{{ stats.online_devices }}<span class="text-muted h6">/{{ stats.total_devices }}</span></div>
+      <div class="stat-sub">son 2 dakika</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card {% if stats.offline_devices %}stat-bad{% endif %}">
+      <div class="stat-label">Offline Cihaz</div>
+      <div class="stat-value">{{ stats.offline_devices }}</div>
+      <div class="stat-sub">bugün {{ stats.access_today }} geçiş</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <!-- Stale devices -->
+  <div class="col-lg-6">
+    <div class="card-section">
+      <header>
+        <span><i class="bi bi-exclamation-triangle text-danger"></i> Offline / Uzun Süredir Sessiz Cihazlar</span>
+        <a class="small" href="{{ url_for('super_admin.devices_list') }}">tümü →</a>
+      </header>
+      <div class="card-section-body">
+        {% if stale_devices %}
+          <table class="table table-sm table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Okul</th>
+                <th>Cihaz</th>
+                <th>Son Heartbeat</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in stale_devices %}
+                <tr>
+                  <td>{{ d.school.name }}</td>
+                  <td>
+                    <a href="{{ url_for('super_admin.device_detail', device_id=d.id) }}">
+                      {{ d.device_name }}
+                    </a>
+                  </td>
+                  <td class="text-muted small">
+                    {% if d.last_heartbeat_at %}
+                      {{ d.last_heartbeat_at.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                      <span class="badge badge-status-provisioning">Hiç bağlanmadı</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="text-muted small m-3">Tüm cihazlar online.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Expiring schools -->
+  <div class="col-lg-6">
+    <div class="card-section">
+      <header>
+        <span><i class="bi bi-calendar-event text-warning"></i> Süresi Dolmak Üzere Olan Okullar</span>
+      </header>
+      <div class="card-section-body">
+        {% if expiring_schools %}
+          <table class="table table-sm table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Okul</th>
+                <th>Durum</th>
+                <th>Bitiş</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in expiring_schools %}
+                <tr>
+                  <td>
+                    <a href="{{ url_for('super_admin.school_detail', school_id=s.id) }}">
+                      {{ s.name }}
+                    </a>
+                  </td>
+                  <td><span class="badge bg-secondary">{{ s.subscription_status }}</span></td>
+                  <td class="small">
+                    {% set ends = s.subscription_expires_at or s.trial_expires_at %}
+                    {% if ends %}{{ ends.strftime('%Y-%m-%d') }}{% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="text-muted small m-3">Yakın zamanda sona erecek abonelik yok.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Audit feed -->
+<div class="card-section">
+  <header>
+    <span><i class="bi bi-clock-history"></i> Son Sistem Olayları</span>
+  </header>
+  <div class="card-section-body">
+    {% if recent_audit %}
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Zaman</th>
+            <th>Kullanıcı</th>
+            <th>Eylem</th>
+            <th>Kaynak</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in recent_audit %}
+            <tr>
+              <td class="small text-muted">{{ a.event_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td class="small">{{ a.user_email_cached or '—' }} <span class="text-muted">({{ a.user_role_cached or '—' }})</span></td>
+              <td><code class="small">{{ a.action }}</code></td>
+              <td class="small text-muted">
+                {{ a.resource_type or '' }}{% if a.resource_label %} · {{ a.resource_label }}{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted small m-3">Henüz kayıt yok.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "shared/base.html" %}
+{% from "shared/partials/form_field.html" import render_field %}
+
+{% block title %}Giriş{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+
+{% block layout %}
+<div class="auth-wrapper d-flex align-items-center min-vh-100">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <div class="text-center mb-4">
+              <h1 class="h4 mb-0">{{ config.APP_NAME }}</h1>
+              <p class="text-muted small mb-0">Yönetim Paneli</p>
+            </div>
+
+            {% include "shared/partials/flash.html" %}
+
+            <form method="post" novalidate>
+              {{ form.hidden_tag() }}
+              {{ render_field(form.username, placeholder="kullanıcı adınız") }}
+              {{ render_field(form.password, placeholder="••••••••") }}
+              <div class="mb-3">
+                <div class="form-check">
+                  {{ form.remember_me(class="form-check-input") }}
+                  {{ form.remember_me.label(class="form-check-label") }}
+                </div>
+              </div>
+              {{ form.submit(class="btn btn-primary w-100") }}
+            </form>
+
+            <div class="text-center mt-3 small">
+              <a href="{{ url_for('auth.password_reset_request') }}" class="text-muted">
+                Şifremi unuttum
+              </a>
+            </div>
+          </div>
+        </div>
+        <p class="text-center text-muted small mt-3 mb-0">
+          v{{ config.APP_VERSION }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

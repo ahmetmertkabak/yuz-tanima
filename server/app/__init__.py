@@ -128,18 +128,43 @@ def _init_extensions(app: Flask) -> None:
 
 
 def _register_blueprints(app: Flask) -> None:
-    """Register all route blueprints.
-
-    NOTE: Blueprint modules will be created in Phase 2 (T2.1+). For now only
-    health check is wired up.
-    """
+    """Register all route blueprints."""
     from app.routes.api.v1 import bp as api_v1_bp
+    from app.routes.auth import bp as auth_bp
+    from app.routes.school_admin import bp as school_admin_bp
+    from app.routes.super_admin import bp as super_admin_bp
 
-    # CSRF is disabled for the device API (uses HMAC signatures instead)
+    # Device API — CSRF disabled, HMAC-signed instead
     csrf.exempt(api_v1_bp)
     app.register_blueprint(api_v1_bp, url_prefix="/api/v1")
 
-    # Placeholder root health endpoint (not on a blueprint)
+    # Shared auth (login/logout/2FA) — mounted at /auth on every host
+    app.register_blueprint(auth_bp)
+
+    # Super admin — URL prefix /super (served from admin.<base-domain>)
+    app.register_blueprint(super_admin_bp, url_prefix="/super")
+
+    # School admin — default host (each school's subdomain)
+    # Mounted at the root so /dashboard, /persons, etc. live there.
+    app.register_blueprint(school_admin_bp)
+
+    # Root redirects — UX helpers
+    from flask import g, redirect, url_for
+    from flask_login import current_user
+
+    @app.get("/")
+    def index():
+        ctx = g.get("tenant_context")
+        if current_user.is_authenticated:
+            if current_user.is_super_admin():
+                return redirect(url_for("super_admin.dashboard"))
+            return redirect(url_for("school_admin.dashboard"))
+        # Anonymous
+        if ctx and ctx.is_super_admin_host:
+            return redirect(url_for("auth.login"))
+        return redirect(url_for("auth.login"))
+
+    # Health endpoint (always available, tenant-agnostic)
     @app.get("/health")
     def health():
         return jsonify(

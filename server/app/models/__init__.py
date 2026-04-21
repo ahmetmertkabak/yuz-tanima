@@ -21,6 +21,11 @@ from app.models.device import (
     DeviceStatus,
     find_device_by_uuid,
 )
+from app.models.device_command import (
+    DeviceCommand,
+    DeviceCommandStatus,
+    DeviceCommandType,
+)
 from app.models.person import ConsentStatus, Person, PersonRole
 from app.models.school import School, SubscriptionStatus
 from app.models.snapshot import Snapshot
@@ -51,6 +56,9 @@ __all__ = [
     "DeviceStatus",
     "DEFAULT_OFFLINE_THRESHOLD_SECONDS",
     "find_device_by_uuid",
+    "DeviceCommand",
+    "DeviceCommandStatus",
+    "DeviceCommandType",
     # AccessLog
     "AccessLog",
     "AccessDirection",

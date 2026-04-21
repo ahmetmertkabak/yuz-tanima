@@ -1,0 +1,24 @@
+{% macro render_field(field, placeholder='', help=None) %}
+  <div class="mb-3">
+    {{ field.label(class="form-label") }}
+    {% set classes = "form-control" ~ (" is-invalid" if field.errors else "") %}
+    {% if field.type == "BooleanField" %}
+      <div class="form-check">
+        {{ field(class="form-check-input") }}
+        {{ field.label(class="form-check-label ms-2") }}
+      </div>
+    {% elif field.type == "TextAreaField" %}
+      {{ field(class=classes, placeholder=placeholder, rows="3") }}
+    {% elif field.type == "SelectField" %}
+      {{ field(class="form-select" ~ (" is-invalid" if field.errors else "")) }}
+    {% else %}
+      {{ field(class=classes, placeholder=placeholder) }}
+    {% endif %}
+    {% if field.errors %}
+      <div class="invalid-feedback d-block">{{ field.errors[0] }}</div>
+    {% endif %}
+    {% if help or field.description %}
+      <div class="form-text">{{ help or field.description }}</div>
+    {% endif %}
+  </div>
+{% endmacro %}

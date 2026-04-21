@@ -1,0 +1,30 @@
+{% extends "super_admin/base.html" %}
+{% from "shared/partials/form_field.html" import render_field %}
+
+{% block title %}{{ device.device_name }} — Düzenle{% endblock %}
+{% block page_title %}{{ device.device_name }} — Düzenle{% endblock %}
+
+{% block content %}
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+  <div class="card-section">
+    <header><span>Cihaz Ayarları</span></header>
+    <div class="card-section-body p-3">
+      <div class="row g-3">
+        <div class="col-md-6">{{ render_field(form.device_name) }}</div>
+        <div class="col-md-6">{{ render_field(form.location) }}</div>
+        <div class="col-md-4">{{ render_field(form.direction_mode) }}</div>
+        <div class="col-md-3">{{ render_field(form.turnstile_pulse_ms) }}</div>
+        <div class="col-md-3">{{ render_field(form.recognition_tolerance) }}</div>
+        <div class="col-md-2">{{ render_field(form.is_active) }}</div>
+        <div class="col-md-12">{{ render_field(form.description) }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-3 d-flex gap-2">
+    {{ form.submit(class="btn btn-primary") }}
+    <a class="btn btn-outline-secondary"
+       href="{{ url_for('super_admin.device_detail', device_id=device.id) }}">İptal</a>
+  </div>
+</form>
+{% endblock %}

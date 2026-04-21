@@ -1,0 +1,93 @@
+{% extends "school_admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="small text-muted">Öğrenci</div>
+        <div class="fs-2 fw-bold">{{ stats.total_students }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="small text-muted">Öğretmen / Personel</div>
+        <div class="fs-2 fw-bold">{{ stats.total_staff }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="small text-muted">Bugün Giriş Yapan</div>
+        <div class="fs-2 fw-bold text-success">{{ stats.entered_today }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="small text-muted">Cihaz</div>
+        <div class="fs-5">
+          {% for d in devices %}
+            <div>
+              <span class="badge badge-status-{{ d.status }}">{{ d.status }}</span>
+              {{ d.device_name }}
+            </div>
+          {% else %}
+            <span class="text-muted">Henüz cihaz yok.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header fw-semibold">
+    <i class="bi bi-broadcast"></i> Son Geçişler
+  </div>
+  <div class="card-body p-0">
+    {% if recent_logs %}
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Zaman</th>
+            <th>Kişi</th>
+            <th>Kapı</th>
+            <th>Yön</th>
+            <th>Sonuç</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent_logs %}
+            <tr>
+              <td class="small text-muted">{{ log.event_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td>
+                {% if log.person %}
+                  {{ log.person.full_name }} <span class="text-muted small">({{ log.person.class_name or '—' }})</span>
+                {% else %}
+                  <em class="text-muted">— Bilinmeyen —</em>
+                {% endif %}
+              </td>
+              <td>{{ log.device.device_name if log.device else '—' }}</td>
+              <td><span class="badge bg-secondary">{{ log.direction }}</span></td>
+              <td>
+                <span class="badge bg-{{ 'success' if log.is_granted else 'danger' }}">
+                  {{ log.outcome }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted m-3 small">Henüz kayıt yok.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

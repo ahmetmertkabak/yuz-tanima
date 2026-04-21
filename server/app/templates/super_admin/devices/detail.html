@@ -1,0 +1,186 @@
+{% extends "super_admin/base.html" %}
+
+{% block title %}{{ device.device_name }}{% endblock %}
+{% block page_title %}{{ device.device_name }}{% endblock %}
+
+{% block header_actions %}
+  <a class="btn btn-sm btn-outline-primary"
+     href="{{ url_for('super_admin.device_edit', device_id=device.id) }}">
+    <i class="bi bi-pencil"></i> Düzenle
+  </a>
+  <form method="post" class="d-inline"
+        action="{{ url_for('super_admin.device_rotate_key', device_id=device.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-sm btn-outline-warning" type="submit"
+            onclick="return confirm('API key yenilensin mi? Eski key çalışmayacak.')">
+      <i class="bi bi-key"></i> API Key Yenile
+    </button>
+  </form>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Durum</div>
+      <div class="stat-value">
+        <span class="badge badge-status-{{ device.status }} fs-5">{{ device.status }}</span>
+      </div>
+      <div class="stat-sub">
+        {% if device.last_heartbeat_at %}
+          son heartbeat: {{ device.last_heartbeat_at.strftime('%H:%M:%S') }}
+        {% else %}
+          hiç bağlanmadı
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">CPU</div>
+      <div class="stat-value">{{ device.cpu_percent or '—' }}%</div>
+      <div class="stat-sub">
+        {% if device.cpu_temp_c %}{{ device.cpu_temp_c }}°C{% else %}—{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">RAM / Disk</div>
+      <div class="stat-value">{{ device.memory_percent or '—' }}%</div>
+      <div class="stat-sub">Disk: {{ device.disk_percent or '—' }}%</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Son 24s Geçiş</div>
+      <div class="stat-value">{{ access_24h }}</div>
+      <div class="stat-sub">Önbellekli kişi: {{ device.persons_cached or 0 }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-md-6">
+    <div class="card-section">
+      <header><span>Cihaz Bilgileri</span></header>
+      <div class="card-section-body p-3">
+        <dl class="row small mb-0">
+          <dt class="col-sm-4">Okul</dt>
+          <dd class="col-sm-8">
+            <a href="{{ url_for('super_admin.school_detail', school_id=device.school_id) }}">
+              {{ device.school.name }}
+            </a>
+          </dd>
+          <dt class="col-sm-4">UUID</dt>
+          <dd class="col-sm-8"><code class="text-mono">{{ device.device_uuid }}</code></dd>
+          <dt class="col-sm-4">Konum</dt>
+          <dd class="col-sm-8">{{ device.location or '—' }}</dd>
+          <dt class="col-sm-4">Yön</dt>
+          <dd class="col-sm-8">{{ device.direction_mode }}</dd>
+          <dt class="col-sm-4">Pulse (ms)</dt>
+          <dd class="col-sm-8">{{ device.turnstile_pulse_ms }}</dd>
+          <dt class="col-sm-4">Tolerans</dt>
+          <dd class="col-sm-8">{{ device.recognition_tolerance or '(okul varsayılanı)' }}</dd>
+          <dt class="col-sm-4">Firmware</dt>
+          <dd class="col-sm-8">{{ device.firmware_version or '—' }}</dd>
+          <dt class="col-sm-4">Son IP</dt>
+          <dd class="col-sm-8"><code>{{ device.last_ip or '—' }}</code></dd>
+          <dt class="col-sm-4">API Key Prefix</dt>
+          <dd class="col-sm-8"><code>{{ device.api_key_prefix }}…</code></dd>
+          <dt class="col-sm-4">Son Hata</dt>
+          <dd class="col-sm-8">
+            {% if device.last_error %}
+              <div class="text-danger small">{{ device.last_error }}</div>
+              <div class="small text-muted">{{ device.last_error_at.strftime('%Y-%m-%d %H:%M') if device.last_error_at }}</div>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card-section">
+      <header><span>Uzaktan Komutlar</span></header>
+      <div class="card-section-body p-3">
+        <form method="post"
+              action="{{ url_for('super_admin.device_command_enqueue', device_id=device.id) }}"
+              class="d-flex gap-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="command_type" class="form-select form-select-sm">
+            {% for c in command_types %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-sm btn-primary" type="submit">Gönder</button>
+        </form>
+
+        <h6 class="mt-3 mb-2">Bekleyen</h6>
+        {% if pending_commands %}
+          <ul class="list-unstyled small mb-0">
+            {% for c in pending_commands %}
+              <li class="d-flex justify-content-between py-1 border-bottom">
+                <span><code>{{ c.command_type }}</code></span>
+                <span class="text-muted">{{ c.status }} · {{ c.created_at.strftime('%H:%M') }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted small mb-0">Bekleyen komut yok.</p>
+        {% endif %}
+
+        <h6 class="mt-3 mb-2">Son Komutlar</h6>
+        {% if recent_commands %}
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Zaman</th><th>Tür</th><th>Durum</th></tr></thead>
+            <tbody>
+              {% for c in recent_commands %}
+                <tr>
+                  <td class="small text-muted">{{ c.created_at.strftime('%m-%d %H:%M') }}</td>
+                  <td><code>{{ c.command_type }}</code></td>
+                  <td>
+                    <span class="badge bg-{{ {'completed':'success','failed':'danger','pending':'warning','sent':'info'}.get(c.status,'secondary') }}">
+                      {{ c.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card-section">
+  <header><span>Son Geçişler</span></header>
+  <div class="card-section-body">
+    {% if last_accesses %}
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Zaman</th><th>Kişi</th><th>Yön</th><th>Sonuç</th><th>Güven</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in last_accesses %}
+            <tr>
+              <td class="small text-muted">{{ log.event_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td>{{ log.person_name_cached or '— Bilinmeyen —' }}</td>
+              <td><span class="badge bg-secondary">{{ log.direction }}</span></td>
+              <td>
+                <span class="badge bg-{{ 'success' if log.is_granted else 'danger' }}">
+                  {{ log.outcome }}
+                </span>
+              </td>
+              <td class="small">{{ '%.2f' % log.confidence if log.confidence }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted m-3 small">Henüz kayıt yok.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

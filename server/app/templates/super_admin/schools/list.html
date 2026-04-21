@@ -1,0 +1,97 @@
+{% extends "super_admin/base.html" %}
+
+{% block title %}Okullar{% endblock %}
+{% block page_title %}Okullar{% endblock %}
+
+{% block header_actions %}
+  <a href="{{ url_for('super_admin.schools_new') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> Yeni Okul
+  </a>
+{% endblock %}
+
+{% block content %}
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-5">
+    <input class="form-control" type="search" name="q" value="{{ q }}"
+           placeholder="Okul adı, subdomain veya email ara...">
+  </div>
+  <div class="col-md-3">
+    <select name="status" class="form-select">
+      <option value="">Tüm durumlar</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-outline-primary w-100" type="submit">Ara</button>
+  </div>
+  <div class="col-md-2">
+    <a class="btn btn-outline-secondary w-100" href="{{ url_for('super_admin.schools_list') }}">Temizle</a>
+  </div>
+</form>
+
+<div class="card-section">
+  <header>
+    <span><i class="bi bi-building"></i> {{ total }} okul</span>
+    <span class="small text-muted">Sayfa {{ page }}</span>
+  </header>
+  <div class="card-section-body">
+    {% if schools %}
+      <table class="table table-hover mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>Okul</th>
+            <th>Subdomain</th>
+            <th>Durum</th>
+            <th class="text-end">Kişi</th>
+            <th class="text-end">Cihaz</th>
+            <th>Oluşturulma</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in schools %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ s.name }}</div>
+                <div class="small text-muted">{{ s.contact_email or '—' }}</div>
+              </td>
+              <td><code>{{ s.subdomain }}</code></td>
+              <td>
+                {% set status_class = {'active':'success','trial':'info','expired':'warning','suspended':'danger','cancelled':'secondary'}.get(s.subscription_status,'secondary') %}
+                <span class="badge bg-{{ status_class }}">{{ s.subscription_status }}</span>
+                {% if not s.is_active %}<span class="badge bg-dark ms-1">pasif</span>{% endif %}
+              </td>
+              <td class="text-end">{{ stats.get(s.id, {}).get('persons', 0) }}</td>
+              <td class="text-end">{{ stats.get(s.id, {}).get('devices', 0) }}</td>
+              <td class="small text-muted">{{ s.created_at.strftime('%Y-%m-%d') if s.created_at }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary"
+                   href="{{ url_for('super_admin.school_detail', school_id=s.id) }}">
+                  Detay
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted m-3">Sonuç yok.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if total > per_page %}
+<nav class="mt-3">
+  <ul class="pagination pagination-sm justify-content-center">
+    {% set total_pages = (total / per_page) | round(0, 'ceil') | int %}
+    {% for p in range(1, total_pages + 1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ p }}">{{ p }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}
