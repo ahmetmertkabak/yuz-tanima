@@ -2,7 +2,17 @@
 Device-facing REST API, version 1.
 
 Base URL: /api/v1
-Auth: HMAC-SHA256 signed requests (see T5.1).
+Auth: HMAC-SHA256 signed requests (see `middleware/device_auth.py`).
+
+Endpoints:
+    GET  /ping                             — liveness (no auth)
+    POST /device/heartbeat                 — periodic status + telemetry
+    GET  /device/config                    — current per-device config
+    GET  /device/encodings?since=ISO&...   — incremental face encoding sync
+    POST /device/access_log                — batched turnstile events
+    POST /device/snapshot                  — multipart image upload
+    GET  /device/commands                  — pending remote commands
+    POST /device/commands/<id>/ack         — report command result
 """
 from flask import Blueprint, jsonify
 
@@ -15,5 +25,10 @@ def ping():
     return jsonify(status="ok", api_version="v1")
 
 
-# Sub-route modules will be wired in T5.1–T5.6:
-# from app.routes.api.v1 import device, encodings, access_log  # noqa
+# Register sub-route modules
+from app.routes.api.v1 import (  # noqa: E402, F401
+    access_log,
+    device,
+    encodings,
+    snapshot,
+)

@@ -53,6 +53,12 @@ class TestDeviceAuth:
         device, plain = make_device()
         assert device.api_key_prefix == plain[:12]
 
+    def test_reveal_api_key_round_trip(self, db, make_device):
+        device, plain = make_device()
+        # Stored encrypted, but reveal brings it back intact
+        assert device.api_key_encrypted is not None
+        assert device.reveal_api_key() == plain
+
 
 class TestDeviceStatus:
     def test_provisioning_when_no_heartbeat(self, db, make_device):

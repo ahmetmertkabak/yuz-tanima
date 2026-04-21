@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional
 
-import bcrypt
 from sqlalchemy import Index, UniqueConstraint
 from sqlalchemy.orm import validates
 
@@ -74,10 +73,13 @@ class Device(db.Model, TimestampMixin):
     location = db.Column(db.String(200))
     description = db.Column(db.Text)
 
-    # --- Auth: API key (bcrypt-hashed; plaintext shown only at creation) ---
-    api_key_hash = db.Column(db.String(255), nullable=False)
+    # --- Auth: API key ---
+    # Fernet-encrypted plaintext of the API key. We need to recompute HMAC
+    # server-side to verify device requests, so bcrypt is not an option here.
+    # The encryption key lives only in the server .env (FACE_ENCRYPTION_KEY).
+    api_key_encrypted = db.Column(db.LargeBinary, nullable=False)
     api_key_prefix = db.Column(db.String(12), nullable=False, index=True)
-    # prefix stored in plain for quick lookup; full key hashed
+    # prefix stored in plain for quick "key starts with…" display
 
     # --- Configuration ---
     direction_mode = db.Column(
@@ -138,33 +140,39 @@ class Device(db.Model, TimestampMixin):
     # ---- API key lifecycle ----
     @staticmethod
     def generate_api_key() -> tuple[str, str]:
-        """Return (prefix, full_key) — plaintext. Caller stores the bcrypt hash."""
+        """Return (prefix, full_key) — plaintext. Caller encrypts via set_api_key."""
         full = secrets.token_urlsafe(48)
         prefix = full[:12]
         return prefix, full
 
     def set_api_key(self, plain: str | None = None) -> str:
         """Rotate the API key. Returns the plaintext (show once at creation)."""
+        from app.services.face_crypto import FaceCrypto  # lazy — Flask ctx needed
+
         if plain is None:
             self.api_key_prefix, plain = self.generate_api_key()
         else:
             self.api_key_prefix = plain[:12]
-        self.api_key_hash = bcrypt.hashpw(
-            plain.encode("utf-8"),
-            bcrypt.gensalt(rounds=12),
-        ).decode("utf-8")
+        self.api_key_encrypted = FaceCrypto.encrypt(plain.encode("utf-8"))
         return plain
 
-    def check_api_key(self, plain: str) -> bool:
-        if not self.api_key_hash or not plain:
-            return False
+    def reveal_api_key(self) -> str | None:
+        """Decrypt and return the plaintext API key (device auth server-side)."""
+        if not self.api_key_encrypted:
+            return None
         try:
-            return bcrypt.checkpw(
-                plain.encode("utf-8"),
-                self.api_key_hash.encode("utf-8"),
-            )
-        except ValueError:
+            from app.services.face_crypto import FaceCrypto
+
+            return FaceCrypto.decrypt(self.api_key_encrypted).decode("utf-8")
+        except Exception:
+            return None
+
+    def check_api_key(self, plain: str) -> bool:
+        """Constant-time comparison against the decrypted key."""
+        stored = self.reveal_api_key()
+        if not stored or not plain:
             return False
+        return secrets.compare_digest(stored, plain)
 
     # ---- heartbeat / status ----
     def touch_heartbeat(

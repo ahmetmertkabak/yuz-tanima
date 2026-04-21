@@ -1,4 +1,8 @@
 """Request-time middleware (tenant resolution, auth/RBAC, rate-limit)."""
+from app.middleware.device_auth import (
+    compute_signature,
+    device_auth_required,
+)
 from app.middleware.auth import (
     can_manage_devices,
     can_manage_persons,
@@ -32,4 +36,7 @@ __all__ = [
     "must_belong_to_current_school",
     "can_manage_persons",
     "can_manage_devices",
-    "has_any_role"]
+    "has_any_role",
+    # device API
+    "device_auth_required",
+    "compute_signature"]
