@@ -1,0 +1,75 @@
+{% extends "school_admin/base.html" %}
+
+{% block title %}Günlük Yoklama{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Günlük Yoklama — {{ day.strftime('%Y-%m-%d') }}</h1>
+  <form method="get" class="d-flex gap-2">
+    <input type="date" class="form-control form-control-sm" name="date"
+           value="{{ day.strftime('%Y-%m-%d') }}">
+    <button class="btn btn-primary btn-sm">Göster</button>
+  </form>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="card"><div class="card-body">
+      <div class="small text-muted">Aktif Kişi</div>
+      <div class="fs-3 fw-bold">{{ totals.active }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body">
+      <div class="small text-muted">Gelen</div>
+      <div class="fs-3 fw-bold text-success">{{ totals.present }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body">
+      <div class="small text-muted">Gelmeyen</div>
+      <div class="fs-3 fw-bold text-warning">{{ totals.absent }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body">
+      <div class="small text-muted">Geç Kalanlar (08:30↑)</div>
+      <div class="fs-3 fw-bold text-danger">{{ late|length }}</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header fw-semibold">Gelenler</div>
+  <div class="card-body p-0">
+    {% if rows %}
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>No</th><th>Ad Soyad</th><th>Sınıf</th>
+            <th>İlk Giriş</th><th>Son Giriş</th><th class="text-end">Olay</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr class="{% if row.first_entry.time() > (row.Person.first_entry if false else none) and row.first_entry.hour >= 9 %}table-warning{% endif %}">
+              <td><code>{{ row.Person.person_no }}</code></td>
+              <td>
+                <a href="{{ url_for('school_admin.person_detail', person_id=row.Person.id) }}">
+                  {{ row.Person.full_name }}
+                </a>
+              </td>
+              <td>{{ row.Person.class_name or '—' }}</td>
+              <td>{{ row.first_entry.strftime('%H:%M:%S') }}</td>
+              <td>{{ row.last_entry.strftime('%H:%M:%S') }}</td>
+              <td class="text-end"><span class="badge bg-secondary">{{ row.event_count }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted m-3 small">Bu gün için kayıt yok.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

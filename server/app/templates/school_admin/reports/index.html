@@ -1,0 +1,49 @@
+{% extends "school_admin/base.html" %}
+
+{% block title %}Raporlar{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">Raporlar</h1>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <a href="{{ url_for('school_admin.report_daily') }}" class="text-decoration-none">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="display-6 text-primary"><i class="bi bi-calendar-day"></i></div>
+          <h5 class="mt-2">Günlük Yoklama</h5>
+          <p class="text-muted small mb-0">
+            Bugün kimler geldi, ilk giriş saatleri, geç kalanlar.
+          </p>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('school_admin.report_absent') }}" class="text-decoration-none">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="display-6 text-warning"><i class="bi bi-person-x"></i></div>
+          <h5 class="mt-2">Gelmeyenler</h5>
+          <p class="text-muted small mb-0">
+            Okula gelmeyen öğrenciler, veli telefonlarıyla birlikte.
+          </p>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('school_admin.report_monthly') }}" class="text-decoration-none">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="display-6 text-success"><i class="bi bi-calendar3"></i></div>
+          <h5 class="mt-2">Aylık Özet</h5>
+          <p class="text-muted small mb-0">
+            Kişi başına devam günü sayısı, sınıf bazlı oranlar.
+          </p>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+{% endblock %}

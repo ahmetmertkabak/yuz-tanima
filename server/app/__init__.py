@@ -126,6 +126,11 @@ def _init_extensions(app: Flask) -> None:
     # Import models so Flask-Migrate can discover them
     from app import models  # noqa: F401
 
+    # Register Socket.IO event handlers
+    from app.services.realtime import register_socketio_handlers
+
+    register_socketio_handlers()
+
 
 def _register_blueprints(app: Flask) -> None:
     """Register all route blueprints."""

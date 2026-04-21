@@ -7,8 +7,13 @@ from app.forms.auth import (
     TwoFactorForm,
     TwoFactorSetupForm,
 )
-from app.forms.school import SchoolCreateForm, SchoolEditForm
 from app.forms.device import DeviceCreateForm, DeviceEditForm
+from app.forms.person import (
+    PersonBulkActionForm,
+    PersonBulkImportForm,
+    PersonForm,
+)
+from app.forms.school import SchoolCreateForm, SchoolEditForm
 
 __all__ = [
     "LoginForm",
@@ -20,4 +25,7 @@ __all__ = [
     "SchoolCreateForm",
     "SchoolEditForm",
     "DeviceCreateForm",
-    "DeviceEditForm"]
+    "DeviceEditForm",
+    "PersonForm",
+    "PersonBulkImportForm",
+    "PersonBulkActionForm"]

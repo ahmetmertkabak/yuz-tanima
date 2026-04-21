@@ -14,6 +14,40 @@
       {{ school.name if school else config.APP_NAME }}
     </a>
 
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#school-nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="school-nav">
+      <ul class="navbar-nav ms-3 me-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'school_admin.dashboard' %}active fw-semibold{% endif %}"
+             href="{{ url_for('school_admin.dashboard') }}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint and request.endpoint.startswith('school_admin.persons') or request.endpoint == 'school_admin.person_detail' or request.endpoint == 'school_admin.person_edit' or request.endpoint == 'school_admin.person_enroll_face' or request.endpoint == 'school_admin.person_delete_face' %}active fw-semibold{% endif %}"
+             href="{{ url_for('school_admin.persons_list') }}">
+            <i class="bi bi-people"></i> Kişiler
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint and 'access_logs' in request.endpoint %}active fw-semibold{% endif %}"
+             href="{{ url_for('school_admin.access_logs_list') }}">
+            <i class="bi bi-list-check"></i> Geçişler
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint and ('reports' in request.endpoint or 'report_' in request.endpoint) %}active fw-semibold{% endif %}"
+             href="{{ url_for('school_admin.reports_index') }}">
+            <i class="bi bi-graph-up"></i> Raporlar
+          </a>
+        </li>
+      </ul>
+    </div>
+
     <div class="d-flex align-items-center gap-3 ms-auto">
       <span class="small text-muted d-none d-md-inline">
         {{ current_user.full_name or current_user.username }}

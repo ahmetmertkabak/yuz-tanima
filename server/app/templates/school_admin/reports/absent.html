@@ -1,0 +1,76 @@
+{% extends "school_admin/base.html" %}
+
+{% block title %}Gelmeyenler{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">Gelmeyenler — {{ day.strftime('%Y-%m-%d') }}</h1>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-3">
+    <input type="date" class="form-control form-control-sm" name="date"
+           value="{{ day.strftime('%Y-%m-%d') }}">
+  </div>
+  <div class="col-md-3">
+    <select class="form-select form-select-sm" name="role">
+      <option value="">Sadece öğrenciler</option>
+      <option value="student" {% if role == 'student' %}selected{% endif %}>Öğrenciler</option>
+      <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Öğretmenler</option>
+      <option value="staff" {% if role == 'staff' %}selected{% endif %}>Personel</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select class="form-select form-select-sm" name="class_name">
+      <option value="">Tüm sınıflar</option>
+      {% for c in classes %}
+        <option value="{{ c }}" {% if c == class_name %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <button class="btn btn-primary btn-sm">Filtrele</button>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-header fw-semibold d-flex justify-content-between">
+    <span>{{ absent|length }} kişi gelmemiş</span>
+    <span class="small text-muted">Veli telefonları iletişim için hazır.</span>
+  </div>
+  <div class="card-body p-0">
+    {% if absent %}
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Sınıf</th>
+            <th>No</th>
+            <th>Ad Soyad</th>
+            <th>Veli</th>
+            <th>Telefon</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in absent %}
+            <tr>
+              <td>{{ p.class_name or '—' }}</td>
+              <td><code>{{ p.person_no }}</code></td>
+              <td>
+                <a href="{{ url_for('school_admin.person_detail', person_id=p.id) }}">
+                  {{ p.full_name }}
+                </a>
+              </td>
+              <td>{{ p.parent_name or '—' }}</td>
+              <td>
+                {% if p.parent_phone %}
+                  <a href="tel:{{ p.parent_phone }}">{{ p.parent_phone }}</a>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted m-3 small">Herkes gelmiş 🎉</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

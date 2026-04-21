@@ -1,0 +1,91 @@
+{% extends "school_admin/base.html" %}
+{% from "shared/partials/form_field.html" import render_field %}
+
+{% block title %}Excel İçe Aktar{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">Kişileri Toplu Yükle</h1>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {{ form.hidden_tag() }}
+          {{ render_field(form.file) }}
+          {{ render_field(form.default_role) }}
+          <div class="form-check mb-3">
+            {{ form.overwrite(class="form-check-input") }}
+            {{ form.overwrite.label(class="form-check-label") }}
+          </div>
+          {{ form.submit(class="btn btn-primary") }}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header fw-semibold">Beklenen Kolonlar</div>
+      <div class="card-body small">
+        <p class="text-muted">Başlık satırında aşağıdaki kolonlardan biri olabilir (Türkçe veya İngilizce):</p>
+        <div class="row">
+          <div class="col-6">
+            <ul class="mb-2">
+              <li><code>no</code> / <code>person_no</code> <strong>(zorunlu)</strong></li>
+              <li><code>ad_soyad</code> / <code>full_name</code> <strong>(zorunlu)</strong></li>
+              <li><code>rol</code> / <code>role</code></li>
+              <li><code>sinif</code> / <code>class_name</code></li>
+            </ul>
+          </div>
+          <div class="col-6">
+            <ul class="mb-0">
+              <li><code>email</code></li>
+              <li><code>telefon</code> / <code>phone</code></li>
+              <li><code>veli_telefon</code> / <code>parent_phone</code></li>
+              <li><code>veli_adi</code> / <code>parent_name</code></li>
+            </ul>
+          </div>
+        </div>
+        <div class="alert alert-info small mt-3 mb-0">
+          <i class="bi bi-info-circle"></i>
+          Yüzler bu adımda yüklenmez — her kişinin yüzü <strong>Yeni Kişi → Yüz Kaydet</strong>
+          sayfasında webcam ile kaydedilir.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if summary %}
+<div class="card mt-4">
+  <div class="card-header fw-semibold">İçe Aktarma Sonucu</div>
+  <div class="card-body">
+    <div class="row g-2 mb-3">
+      <div class="col-md-3"><span class="badge bg-success fs-6">{{ summary.created }}</span> yeni</div>
+      <div class="col-md-3"><span class="badge bg-info text-dark fs-6">{{ summary.updated }}</span> güncellendi</div>
+      <div class="col-md-3"><span class="badge bg-secondary fs-6">{{ summary.skipped }}</span> atlandı</div>
+      <div class="col-md-3"><span class="badge bg-danger fs-6">{{ summary.errors|length }}</span> hata</div>
+    </div>
+
+    {% if summary.errors %}
+      <h6>Hatalar</h6>
+      <table class="table table-sm table-striped">
+        <thead><tr><th>Satır</th><th>Alan</th><th>Hata</th></tr></thead>
+        <tbody>
+          {% for err in summary.errors %}
+            <tr>
+              <td>{{ err.row }}</td>
+              <td><code>{{ err.field }}</code></td>
+              <td>{{ err.message }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    <a href="{{ url_for('school_admin.persons_list') }}" class="btn btn-primary">Kişi Listesine Git</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

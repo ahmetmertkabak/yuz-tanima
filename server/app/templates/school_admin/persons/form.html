@@ -1,0 +1,66 @@
+{% extends "school_admin/base.html" %}
+{% from "shared/partials/form_field.html" import render_field %}
+
+{% block title %}{% if mode == 'new' %}Yeni Kişi{% else %}{{ person.full_name }} — Düzenle{% endif %}{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">
+  {% if mode == 'new' %}Yeni Kişi{% else %}{{ person.full_name }} <span class="text-muted fs-6">düzenle</span>{% endif %}
+</h1>
+
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">Kimlik</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">{{ render_field(form.person_no, placeholder="1234 / STU001") }}</div>
+        <div class="col-md-6">{{ render_field(form.full_name) }}</div>
+        <div class="col-md-3">{{ render_field(form.role) }}</div>
+        <div class="col-md-3">{{ render_field(form.class_name, placeholder="9-A") }}</div>
+        <div class="col-md-4">{{ render_field(form.email) }}</div>
+        <div class="col-md-4">{{ render_field(form.phone) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">Veli Bilgileri</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">{{ render_field(form.parent_name) }}</div>
+        <div class="col-md-6">{{ render_field(form.parent_phone) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">Erişim & KVKK</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">{{ render_field(form.is_active) }}</div>
+        <div class="col-md-3">{{ render_field(form.access_granted) }}</div>
+        <div class="col-md-4">{{ render_field(form.consent_status) }}</div>
+        <div class="col-md-12">{{ render_field(form.notes) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    {{ form.submit(class="btn btn-primary") }}
+    <a href="{{ url_for('school_admin.persons_list') }}" class="btn btn-outline-secondary">İptal</a>
+
+    {% if mode == 'edit' %}
+      <form method="post" class="ms-auto"
+            action="{{ url_for('school_admin.person_delete', person_id=person.id) }}"
+            onsubmit="return confirm('Kişi silinsin mi? Bu işlem geri alınamaz.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger">
+          <i class="bi bi-trash"></i> Sil
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

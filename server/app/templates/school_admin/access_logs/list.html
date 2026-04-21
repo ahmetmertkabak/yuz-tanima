@@ -1,0 +1,109 @@
+{% extends "school_admin/base.html" %}
+
+{% block title %}Geçişler{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Geçişler <span class="text-muted fs-6">({{ total }})</span></h1>
+  <a class="btn btn-outline-secondary btn-sm"
+     href="{{ url_for('school_admin.access_logs_export', **request.args) }}">
+    <i class="bi bi-download"></i> Excel İndir
+  </a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-2">
+    <label class="form-label small">Başlangıç</label>
+    <input type="date" class="form-control form-control-sm" name="from" value="{{ filters.from }}">
+  </div>
+  <div class="col-md-2">
+    <label class="form-label small">Bitiş</label>
+    <input type="date" class="form-control form-control-sm" name="to" value="{{ filters.to }}">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small">Kapı</label>
+    <select name="device_id" class="form-select form-select-sm">
+      <option value="">Tümü</option>
+      {% for d in devices %}
+        <option value="{{ d.id }}" {% if filters.device_id == d.id %}selected{% endif %}>{{ d.device_name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small">Sonuç</label>
+    <select name="outcome" class="form-select form-select-sm">
+      <option value="">Tümü</option>
+      {% for o in outcomes %}
+        <option value="{{ o }}" {% if filters.outcome == o %}selected{% endif %}>{{ o }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <div class="form-check me-2">
+      <input class="form-check-input" type="checkbox" name="denied" value="1"
+             {% if filters.denied_only %}checked{% endif %} id="denied-filter">
+      <label class="form-check-label small" for="denied-filter">Sadece reddedilenler</label>
+    </div>
+    <button class="btn btn-primary btn-sm ms-auto">Filtrele</button>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Zaman</th>
+          <th>Kişi</th>
+          <th>Sınıf</th>
+          <th>Kapı</th>
+          <th>Yön</th>
+          <th>Sonuç</th>
+          <th>Güven</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+          <tr>
+            <td class="small text-muted">{{ log.event_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>
+              {% if log.person_id %}
+                <a href="{{ url_for('school_admin.person_detail', person_id=log.person_id) }}">
+                  {{ log.person_name_cached or log.person.full_name }}
+                </a>
+              {% else %}
+                <em class="text-muted">— Bilinmeyen —</em>
+              {% endif %}
+            </td>
+            <td class="small">{{ log.person_class_cached or '' }}</td>
+            <td>{{ log.device.device_name if log.device else '—' }}</td>
+            <td><span class="badge bg-secondary">{{ log.direction }}</span></td>
+            <td>
+              <span class="badge bg-{{ 'success' if log.is_granted else 'danger' }}">
+                {{ log.outcome }}
+              </span>
+            </td>
+            <td class="small">{{ '%.2f' % log.confidence if log.confidence else '' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-muted text-center p-4">Kayıt yok.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if total > per_page %}
+  <nav class="mt-3">
+    <ul class="pagination pagination-sm justify-content-center">
+      {% set total_pages = (total / per_page) | round(0, 'ceil') | int %}
+      {% for p in range(1, total_pages + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+          <a class="page-link"
+             href="?{% for k,v in request.args.items() if k != 'page' %}{{ k }}={{ v }}&{% endfor %}page={{ p }}">{{ p }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}

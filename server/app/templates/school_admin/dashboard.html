@@ -91,3 +91,41 @@
   </div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+        integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+        crossorigin="anonymous"></script>
+<script>
+(function () {
+  const feedBody = document.querySelector("table tbody");
+  if (!feedBody) return;
+  const socket = io("/", { transports: ["websocket", "polling"] });
+
+  socket.on("connect", () => socket.emit("join_school"));
+
+  socket.on("access_log", (data) => {
+    const when = data.event_at ? new Date(data.event_at).toLocaleTimeString("tr-TR") : "";
+    const outcomeClass = data.is_granted ? "success" : "danger";
+    const name = data.person_name
+      ? `${data.person_name} <span class="text-muted small">(${data.person_class || "—"})</span>`
+      : "<em class='text-muted'>— Bilinmeyen —</em>";
+    const tr = document.createElement("tr");
+    tr.className = "table-info";
+    tr.innerHTML = `
+      <td class="small text-muted">${when}</td>
+      <td>${name}</td>
+      <td>${data.device_name || "—"}</td>
+      <td><span class="badge bg-secondary">${data.direction}</span></td>
+      <td><span class="badge bg-${outcomeClass}">${data.outcome}</span></td>
+    `;
+    feedBody.insertBefore(tr, feedBody.firstChild);
+    setTimeout(() => tr.classList.remove("table-info"), 1500);
+    // Keep list capped at 30 rows
+    while (feedBody.children.length > 30) {
+      feedBody.removeChild(feedBody.lastChild);
+    }
+  });
+})();
+</script>
+{% endblock %}

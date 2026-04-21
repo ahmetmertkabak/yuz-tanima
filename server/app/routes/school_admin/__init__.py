@@ -20,4 +20,10 @@ bp = Blueprint(
     template_folder="../../templates/school_admin",
 )
 
-from app.routes.school_admin import dashboard  # noqa: E402, F401
+from app.routes.school_admin import (  # noqa: E402, F401
+    access_logs,
+    dashboard,
+    face_enroll,
+    persons,
+    reports,
+)
